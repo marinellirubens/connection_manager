@@ -2,8 +2,10 @@
 The ideia is to store passwords, usernames, etc. in a database and then use the information to
 Also server informations and types of operating systems."""
 
+import os
 from server.app import create_app
-from database.models import initiate_db
+from database.utils import initiate_db
+
 
 def main():
     """Main function of the application."""

@@ -1,27 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import Column, Integer, String, ForeignKey, Date
 from sqlalchemy.ext.declarative import declarative_base
-from flask_sqlalchemy import SQLAlchemy
-from enum import Enum, auto
 
 
 Base = declarative_base()
-# db = SQLAlchemy()
-
-class ConnectionEnum(Enum):
-    LINUX = auto()
-    WINDOWS = auto()
-    MAC = auto()
-
-
-class DatabaseEnum(Enum):
-    ORACLE = auto()
-    MYSQL = auto()
-    POSTGRES = auto()
-    SQLITE = auto()
-    MONGODB = auto()
-    REDIS = auto()
-    MSSQL = auto()
 
 
 class DatabaseTypeModel(Base):
@@ -31,76 +12,120 @@ class DatabaseTypeModel(Base):
 
     def __init__(self, id, description):
         self.id = id
-        self.description = description    
+        self.description = description
 
     def to_json(self):
         return dict(id=self.id, description=self.description)
 
-class ConnectionType(Base):
+
+class ConnectionTypeModel(Base):
     __tablename__ = 'connection_type'
     id = Column(Integer, primary_key=True)
     description = Column(String(50), nullable=False)
 
     def __init__(self, id, description):
         self.id = id
-        self.description = description 
+        self.description = description
+
+    def to_json(self):
+        return dict(id=self.id, description=self.description)
 
 
-class Server(Base):
-    __tablename__ = 'server'
+class ServerTypeModel(Base):
+    __tablename__ = 'server_type'
     id = Column(Integer, primary_key=True)
     description = Column(String(50), nullable=False)
-    host = Column(String(50), nullable=False)
-    port = Column(Integer, nullable=False)
-    platform = Column(String(50), nullable=False)
-    connection_type = Column(Integer, ForeignKey('connection_type.id'), nullable=False)
+
+    def __init__(self, id, description):
+        self.id = id
+        self.description = description
+
+    def to_json(self):
+        return dict(id=self.id, description=self.description)
 
 
-class Database(Base):
+class FunctionTypeModel(Base):
+    __tablename__ = 'function_type'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(255), nullable=False)
+
+    def __init__(self, id, description):
+        self.id = id
+        self.description = description
+
+    def to_json(self):
+        return dict(id=self.id, description=self.description)
+
+
+class GroupModel(Base):
+    __tablename__ = 'groups'
+    group_id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String(255), nullable=False)
+    creation_date = Column(Date, nullable=False)
+
+
+class UserModel(Base):
+    __tablename__ = 'user'
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
+    creation_date = Column(Date, nullable=False)
+    update_date = Column(Date, nullable=False)
+
+
+class UserGroupModel(Base):
+    __tablename__ = 'user_grp'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
+
+
+class FunctionPermissionsModel(Base):
+    __tablename__ = 'function_permissions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
+    function_id = Column(Integer, ForeignKey('function_type.id'), nullable=False)
+
+
+class DatabaseModel(Base):
     __tablename__ = 'database'
-    id = Column(Integer, primary_key=True)
+    database_id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(50), nullable=False)
     host = Column(String(50), nullable=False)
     port = Column(Integer, nullable=False)
     sid = Column(String(50), nullable=False)
-    database_type = Column(String(50), ForeignKey('database_type.id'), nullable=False)
+    database_type_id = Column(String(50),
+                              ForeignKey('database_type.id'),
+                              nullable=False)
 
 
-class User(Base):
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
+class ServerModel(Base):
+    __tablename__ = 'server'
+    server_id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(50), nullable=False)
-    username = Column(String(50), nullable=False)
+    host = Column(String(50), nullable=False)
+    port = Column(Integer, nullable=False)
+    server_type_id = Column(String(50), ForeignKey('server_type.id'), nullable=False)
+    connection_type = Column(Integer, ForeignKey('connection_type.id'), nullable=False)
+
+
+class ServerPermissionsModel(Base):
+    __tablename__ = 'server_permissions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
+    server_id = Column(Integer, ForeignKey('server.server_id'), nullable=False)
+
+
+class LoginModel(Base):
+    __tablename__ = 'login'
+    login_id = Column(Integer, primary_key=True, autoincrement=True)
+    user = Column(String(50), nullable=False)
     password = Column(String(50), nullable=False)
-    user_type = Column(String(50), nullable=False)
-    related_connection_id = Column(Integer, nullable=False)
+    connection_type = Column(Integer, nullable=False)
 
 
-def insert_types(session: scoped_session):
-    objects = []
-    for item in DatabaseEnum:
-        if session.query(DatabaseTypeModel).where(DatabaseTypeModel.id == item.value).count() > 0:
-            continue
-        objects.append(DatabaseTypeModel(item.value, item.name))
-
-    session.bulk_save_objects(objects)            
-    session.commit()
-
-    objects.clear()
-    for item in ConnectionEnum:
-        if session.query(ConnectionType).where(ConnectionType.id == item.value).count() > 0:
-            continue
-        objects.append(ConnectionType(item.value, item.name))
-
-    session.bulk_save_objects(objects)            
-    session.commit()
-
-
-def initiate_db():
-    """Method to initiate the sqlit database using sqlalchemy."""
-    engine = create_engine('sqlite:///./database/api.db', echo=True)
-    session = sessionmaker(bind=engine, autocommit=False, autoflush=False)()
-    Base.metadata.create_all(engine)
-
-    insert_types(session=session)
-    return engine, session
+class ConnectionLoginModel(Base):
+    __tablename__ = 'connection_login'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    login_id = Column(Integer, ForeignKey('connection_login.login_id'), nullable=False)
+    connection_id = Column(Integer, nullable=False)
