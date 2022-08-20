@@ -11,7 +11,14 @@ def main():
     engine, session = initiate_db()
     app.engine = engine
     app.session = session
-    app.run(host='0.0.0.0', port=8080, debug=False)
+
+
+def create_directories():
+    directories = ['logs', 'files', 'sqlite']
+
+    for directory in directories:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
 
 if __name__ == '__main__':
