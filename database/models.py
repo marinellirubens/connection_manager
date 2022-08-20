@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, ColumnDefault
 from sqlalchemy.ext.declarative import declarative_base
+import hashlib
 
 
 Base = declarative_base()
