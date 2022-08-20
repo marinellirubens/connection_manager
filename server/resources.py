@@ -1,67 +1,177 @@
 """Method to handle the resource for the API"""
-import os
-import uuid
+# import os
+# import uuid
 
+from abc import abstractmethod
 from database import models
-from flask import Flask, Response, jsonify, request, send_file
+from flask import jsonify
+# from flask import Response, request, send_file
 from flask_restful import Resource
 from sqlalchemy import func
+from server.authentication import auth
+from server.app import App
 
 
-app: Flask = Flask(__name__)
+app = App('main')
 
 
-def get_app(app_name: str) -> Flask:
-    global app
+# TODO: Implement other verbs on the resources
 
-    app = Flask(app_name)
+class BasicTypes(Resource):
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    return app
+        self.model_class = None
 
-
-class DatabaseTypes(Resource):
-    """Method to handle post requests for database_type table when all lines requested."""
+    @auth.login_required
     def get(self):
-        """Method to handle get requests for database_type table."""
-        rows = app.session.query(models.DatabaseTypeModel).all()
-        app.logger.debug("Debug log level")
-        return {'Database types': [row.to_json() for row in rows]}
+        """Method to handle get requests for type tables."""
+        rows = app.session.query(self.model_class).all()
+        app.logger.debug(f"Returning all {self.__class__.__name__} rows")
+
+        return {self.model_class.__tablename__: [row.to_json() for row in rows]}
 
 
-class DatabaseType(Resource):
-    """Method to handle post requests for database_type table when specific database type requested.
-    """
+class BasicTypeSingle(Resource):
+    """Method to handle post requests for table when specific type requested."""
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = None
+
+    @auth.login_required
     def get(self, param):
-        row = app.session.query(models.DatabaseTypeModel)\
-            .where(models.DatabaseTypeModel.id == param)
+        row = app.session.query(self.model_class)\
+            .where(self.model_class.id == param)
 
         if row.count() == 0:
-            return {'error': 'No database type found'}, 401
+            return jsonify(
+                error=f'No information found on {self.model_class.__tablename__} found'), 401
 
         return row[0].to_json()
 
+    @auth.login_required
     def post(self, param):
-        """Method to handle insert of new database type.
+        """Method to handle insert of new type.
 
-        :param param: database type name
-        :return: database type id that was inserted
+        :param param: type description
+        :return: type id that was inserted
         """
-        row = app.session.query(models.DatabaseTypeModel)\
-            .where(models.DatabaseTypeModel.description == param)
+        row = app.session.query(self.model_class)\
+            .where(self.model_class.description == param)
 
         if row.count() > 0:
-            return {'error': 'database type id already exists', 'database_type_id': row[0].id}, 401
+            return jsonify(error=f'{self.model_class} id already exists', id=row[0].id), 401
 
-        max_id = app.session.query(func.max(models.DatabaseTypeModel.id))[0]
-        max_id = int(max_id[0]) + 1
-        app.session.bulk_save_objects([DatabaseType(max_id, param)])
+        max_id = app.session.query(func.max(self.model_class.id))[0]
+        next_id = int(max_id[0]) + 1
+        app.session.bulk_save_objects([self.model_class(next_id, param)])
         app.session.commit()
 
-        return jsonify(message=f'Database type {max_id} created successfully', database_id=max_id)
+        app.logger.debug(f"{self.model_class}: {next_id} created successfully")
+
+        return jsonify(message=f'{self.model_class}: {next_id} created successfully',
+                       database_id=next_id)
 
 
+class DatabaseTypes(BasicTypes):
+    """Method to handle post requests for database_type table when all lines requested."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.DatabaseTypeModel
+
+
+class DatabaseType(BasicTypeSingle):
+    """Method to handle post requests for database_type table when specific database type requested.
+    """
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.DatabaseTypeModel
+
+
+class ConnectionTypes(BasicTypes):
+    """Method to handle post requests for connection_type table when all lines requested."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.ConnectionTypeModel
+
+
+class ConnectionType(BasicTypeSingle):
+    """Method to handle post requests for connection_type table when specific
+    connection type requested.
+    """
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.ConnectionTypeModel
+
+
+class ServerTypes(BasicTypes):
+    """Method to handle post requests for server_type table when all lines requested."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.ServerTypeModel
+
+
+class ServerType(BasicTypeSingle):
+    """Method to handle post requests for server_type table when specific
+    connection type requested.
+    """
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.ServerTypeModel
+
+
+class FunctionTypes(BasicTypes):
+    """Method to handle post requests for function_type table when all lines requested."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.FunctionTypeModel
+
+
+class FunctionType(BasicTypeSingle):
+    """Method to handle post requests for function_type table when specific
+    function type requested.
+    """
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.FunctionTypeModel
+
+
+class Groups(BasicTypes):
+    """Method to handle post requests for groups table when all lines requested."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.GroupModel
+
+
+class Group(BasicTypeSingle):
+    """Method to handle post requests for groups table when specific group requested."""
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.GroupModel
+
+
+'''
 class Teste(Resource):
     """Class to handle requests to the server."""
+    @auth.login_required
     def get(self, file_id=None) -> Response:
         """Method to handle requests to the server."""
         if not os.path.exists(os.path.join('files', file_id)):
@@ -72,6 +182,7 @@ class Teste(Resource):
             download_name=file_id,
             mimetype='image/png')
 
+    @auth.login_required
     def post(self) -> Response:
         """Method to handle requests to the server."""
         request_data = request.files['teste']
@@ -79,9 +190,11 @@ class Teste(Resource):
         request_data.save(os.path.join('files', file_id))
         return {'file_id': file_id}, 200
 
+    @auth.login_required
     def delete(self, file_id) -> Response:
         if not os.path.exists(os.path.join('files', file_id)):
             return {'error': 'file not found'}, 404
 
         os.remove(os.path.join('files', file_id))
         return {'message': 'file deleted'}, 200
+'''

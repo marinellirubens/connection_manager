@@ -62,21 +62,38 @@ def populate_type_table(session, table, enum):
     session.commit()
 
 
+def insert_admin_login(session):
+    """Method to insert the admin login into the database."""
+    admin_group = models.GroupModel(description='admin')
+    admin_user = models.UserModel(name='admin', password='admin')
+    session.bulk_save_objects([admin_user, admin_group])
+    session.commit()
+
+
 def insert_types(session: scoped_session):
     populate_type_table(session, models.ServerTypeModel, ServerTypeEnum)
     populate_type_table(session, models.ConnectionTypeModel, ConnectionTypeEnum)
     populate_type_table(session, models.DatabaseTypeModel, DatabaseEnum)
     populate_type_table(session, models.FunctionTypeModel, FunctionTypeEnum)
 
+    insert_admin_login(session)
+
 
 def initiate_db(database_directory: str = 'sqlite') -> tuple:
     """Method to initiate the sqlit database using sqlalchemy."""
     database_destination = os.path.join(database_directory, 'api.db')
 
+    poputate_database = False
+    if not os.path.exists(database_destination):
+        poputate_database = True
+
     engine = create_engine(f'sqlite:///{database_destination}', echo=True,
                            connect_args={'check_same_thread': False})
     session = sessionmaker(bind=engine, autocommit=False, autoflush=False)()
-    models.Base.metadata.create_all(engine)
 
-    insert_types(session=session)
+    # only populate the database if it is a new one
+    if poputate_database:
+        models.Base.metadata.create_all(engine)
+        insert_types(session=session)
+
     return engine, session
