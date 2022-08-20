@@ -67,10 +67,21 @@ class GroupModel(Base):
 class UserModel(Base):
     __tablename__ = 'user'
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
-    creation_date = Column(Date, nullable=False)
-    update_date = Column(Date, nullable=False)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
+    update_date = Column(Date, nullable=True, onupdate=ColumnDefault(datetime.now()))
+
+    def __init__(self, name, password):
+        self.name = name
+        self.password = self.password_hash(password)
+
+    @staticmethod
+    def password_hash(password):
+        return hashlib.md5(password.encode('utf-8')).hexdigest()
+
+    def validate_password(self, password):
+        return self.password == self.password_hash(password)
 
 
 class UserGroupModel(Base):
