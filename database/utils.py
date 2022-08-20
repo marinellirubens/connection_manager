@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from enum import Enum, auto
 
 import database.models as models
+import os
 
 
 class ServerTypeEnum(Enum):
@@ -68,9 +69,12 @@ def insert_types(session: scoped_session):
     populate_type_table(session, models.FunctionTypeModel, FunctionTypeEnum)
 
 
-def initiate_db():
+def initiate_db(database_directory: str = 'sqlite') -> tuple:
     """Method to initiate the sqlit database using sqlalchemy."""
-    engine = create_engine('sqlite:///./sqlite/api.db', echo=True)
+    database_destination = os.path.join(database_directory, 'api.db')
+
+    engine = create_engine(f'sqlite:///{database_destination}', echo=True,
+                           connect_args={'check_same_thread': False})
     session = sessionmaker(bind=engine, autocommit=False, autoflush=False)()
     models.Base.metadata.create_all(engine)
 
