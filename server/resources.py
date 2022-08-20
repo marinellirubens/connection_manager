@@ -1,4 +1,4 @@
-
+"""Method to handle the resource for the API"""
 import os
 import uuid
 
