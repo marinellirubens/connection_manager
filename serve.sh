@@ -1,0 +1,1 @@
+gunicorn --reload --chdir . --log-config config/gunicorn.logs.conf --config config/gunicorn.conf.py main:app 
