@@ -4,6 +4,7 @@ Also server informations and types of operating systems."""
 
 from server.app import create_app
 from flask import Flask
+from config.logs import set_logger
 
 
 # TODO: Move that to config files or cli arguments
@@ -17,7 +18,9 @@ def main():
     """Main function of the application."""
     # TODO: implement cli arguments and parsing
     # TODO: implement logging
-    app.run(host='127.0.0.1', port='7009', debug=False)
+
+    set_logger(app, DIRECTORY_LOGS)
+    app.run(host='127.0.0.1', port='7009', debug=True)
 
 
 if __name__ == '__main__':
