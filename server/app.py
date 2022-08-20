@@ -13,7 +13,9 @@ def create_app(app_name: str) -> Flask:
     app = get_app(app_name)
     api = Api(app)
 
-    # api.add_resource(Database, '/', methods=['PUT'])
+    engine, session = initiate_db(database_directory)
+    app.engine = engine
+    app.session = session
     api.add_resource(DatabaseType,
                      '/database_type/<param>',
                      methods=['GET', 'POST', 'DELETE'])
