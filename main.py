@@ -7,6 +7,10 @@ from database.models import initiate_db
 
 def main():
     """Main function of the application."""
+    # TODO: implement cli arguments and parsing
+    # TODO: implement logging
+    create_directories()
+
     app = create_app(__name__)
     engine, session = initiate_db()
     app.engine = engine
