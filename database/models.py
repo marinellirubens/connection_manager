@@ -8,7 +8,7 @@ Base = declarative_base()
 class DatabaseTypeModel(Base):
     __tablename__ = 'database_type'
     id = Column(Integer, primary_key=True)
-    description = Column(String(50), nullable=False)
+    description = Column(String(50), nullable=False, unique=True)
 
     def __init__(self, id, description):
         self.id = id
@@ -21,7 +21,7 @@ class DatabaseTypeModel(Base):
 class ConnectionTypeModel(Base):
     __tablename__ = 'connection_type'
     id = Column(Integer, primary_key=True)
-    description = Column(String(50), nullable=False)
+    description = Column(String(50), nullable=False, unique=True)
 
     def __init__(self, id, description):
         self.id = id
@@ -34,7 +34,7 @@ class ConnectionTypeModel(Base):
 class ServerTypeModel(Base):
     __tablename__ = 'server_type'
     id = Column(Integer, primary_key=True)
-    description = Column(String(50), nullable=False)
+    description = Column(String(50), nullable=False, unique=True)
 
     def __init__(self, id, description):
         self.id = id
@@ -47,7 +47,7 @@ class ServerTypeModel(Base):
 class FunctionTypeModel(Base):
     __tablename__ = 'function_type'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String(255), nullable=False)
+    description = Column(String(255), nullable=False, unique=True)
 
     def __init__(self, id, description):
         self.id = id
