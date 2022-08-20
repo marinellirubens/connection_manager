@@ -5,10 +5,11 @@ from database.utils import initiate_db
 from server.resources import get_app, DatabaseType, DatabaseTypes
 from config.utils import create_directories
 
-app: Flask
 
-def create_app(app_name: str) -> Flask:
+def create_app(app_name: str, database_directory: str = 'sqlite',
+               log_dir: str = './logs', directory_files: str = './files') -> Flask:
     """Method to handle requests to the server."""
+    create_directories([database_directory, directory_files, log_dir])
 
     app = get_app(app_name)
     api = Api(app)
