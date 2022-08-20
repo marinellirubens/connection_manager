@@ -15,6 +15,7 @@ def main():
     engine, session = initiate_db()
     app.engine = engine
     app.session = session
+    app.run(host='0.0.0.0', port=8081, debug=False)
 
 
 def create_directories():
