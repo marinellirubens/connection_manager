@@ -60,8 +60,14 @@ class FunctionTypeModel(Base):
 class GroupModel(Base):
     __tablename__ = 'groups'
     group_id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String(255), nullable=False)
-    creation_date = Column(Date, nullable=False)
+    description = Column(String(255), nullable=False, unique=True)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
+
+    def __init__(self, description):
+        self.description = description
+
+    def to_json(self):
+        return dict(id=self.group_id, description=self.description)
 
 
 class UserModel(Base):
