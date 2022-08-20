@@ -9,9 +9,8 @@ app: Flask
 
 def create_app(app_name: str) -> Flask:
     """Method to handle requests to the server."""
-    global app
 
-    app = Flask(app_name)
+    app = get_app(app_name)
     api = Api(app)
 
     # api.add_resource(Database, '/', methods=['PUT'])
