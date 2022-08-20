@@ -79,6 +79,10 @@ class UserGroupModel(Base):
     group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
 
+    def __init__(self, group_id, user_id):
+        self.group_id = group_id
+        self.user_id = user_id
+
 
 class FunctionPermissionsModel(Base):
     __tablename__ = 'function_permissions'
