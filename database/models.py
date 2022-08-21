@@ -127,7 +127,7 @@ class UserModel(Base):
             creation_date=format_date(self.creation_date),
             update_date=format_date(self.update_date)
         )
-        
+
         return user_json
 
 
@@ -140,12 +140,12 @@ class UserGroupModel(Base):
     def __init__(self, group_id, user_id):
         self.group_id = group_id
         self.user_id = user_id
-    
+
     def to_json(self, session: Session):
-        
+
         group = session.query(GroupModel).filter(GroupModel.user_id == self.group_id).first()
         user = session.query(UserModel).filter(UserModel.user_id == self.user_id).first()
-        
+
         return dict(id=self.id, group_id=group.to_json(), user_id=user.to_json())
 
 
@@ -154,11 +154,11 @@ class FunctionPermissionsModel(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
     function_id = Column(Integer, ForeignKey('function_type.id'), nullable=False)
-    
+
     def __init__(self, group_id, function_id):
         self.group_id = group_id
         self.function_id = function_id
-        
+
     def to_json(self, session: Session):
         group = session.query(GroupModel).filter(GroupModel.user_id == self.group_id).first()
         function = session.query(FunctionTypeModel).filter(
@@ -229,6 +229,16 @@ class ServerPermissionsModel(Base):
     group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
     server_id = Column(Integer, ForeignKey('server.server_id'), nullable=False)
 
+    def __init__(self, group_id, server_id):
+        self.group_id = group_id
+        self.server_id = server_id
+
+    def to_json(self, session: Session):
+        group = session.query(GroupModel).filter(GroupModel.user_id == self.group_id).first()
+        server = session.query(ServerModel).filter(ServerModel.server_id == self.server_id).first()
+
+        return dict(id=self.id, group=group.to_json(), server=server.to_json())
+
 
 class LoginModel(Base):
     __tablename__ = 'login'
@@ -237,9 +247,37 @@ class LoginModel(Base):
     password = Column(String(50), nullable=False)
     connection_type = Column(Integer, nullable=False)
 
+    def __init__(self, user, password, connection_type):
+        self.user = user
+        self.password = encript_password(password)
+        self.connection_type = connection_type
+
+    def to_json(self):
+        return dict(
+            login_id=self.login_id,
+            user=self.user,
+            password=decript_password(self.password),
+            connection_type=self.connection_type
+        )
+
 
 class ConnectionLoginModel(Base):
     __tablename__ = 'connection_login'
     id = Column(Integer, primary_key=True, autoincrement=True)
     login_id = Column(Integer, ForeignKey('connection_login.login_id'), nullable=False)
     connection_id = Column(Integer, nullable=False)
+
+    def __init__(self, login_id, connection_id):
+        self.login_id = login_id
+        self.connection_id = connection_id
+
+    def to_json(self, session: Session):
+        login = session.query(LoginModel).filter(LoginModel.login_id == self.login_id).first()
+        connection = session.query(ServerModel).filter(
+            ServerModel.server_id == self.connection_id).first()
+
+        if connection is None:
+            connection = session.query(DatabaseModel).filter(
+                DatabaseModel.database_id == self.connection_id).first()
+
+        return dict(id=self.id, login=login.to_json(), connection=connection.to_json())
