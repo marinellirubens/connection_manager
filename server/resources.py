@@ -4,7 +4,7 @@
 
 from abc import abstractmethod
 from database import models
-from flask import jsonify, request
+from flask import jsonify, request, Flask
 # from flask import Response, request, send_file
 from flask_restful import Resource
 from sqlalchemy import func
@@ -30,8 +30,9 @@ class BasicTypes(Resource):
         rows = app.session.query(self.model_class).all()
         app.logger.debug(
             f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
-
-        return {self.model_class.__tablename__: [row.to_json() for row in rows]}
+        
+        resp = {self.model_class.__tablename__: [row.to_json() for row in rows]}
+        return resp
 
 
 class BasicTypeSingle(Resource):
@@ -176,6 +177,22 @@ class Group(BasicTypeSingle):
         super().__init__(*args, **kwargs)
 
         self.model_class = models.GroupModel
+
+
+class Users(BasicTypes):
+    """Class to handle user requests"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.UserModel
+        
+
+class UserGroups(BasicTypes):
+    """Class to handle user requests"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.model_class = models.UserGroupModel
 
 
 '''

@@ -37,4 +37,8 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.Groups, '/group/', methods=['GET'])
     api.add_resource(resources.Group, '/group/<param>', methods=['GET', 'POST'])
 
+    api.add_resource(resources.Users, '/users/', methods=['GET'])
+    
+    api.add_resource(resources.UserGroups, '/user_groups/', methods=['GET'])
+
     return app
