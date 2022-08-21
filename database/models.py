@@ -1,9 +1,10 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, ColumnDefault
 from sqlalchemy.ext.declarative import declarative_base
-from flask import jsonify
 import hashlib
 from sqlalchemy.orm import Session
+from Crypto.Cipher import AES
+import base64
 
 
 Base = declarative_base()
@@ -11,6 +12,32 @@ Base = declarative_base()
 
 def format_date(date):
     return datetime.strftime(date, '%Y-%m-%d')
+
+
+def password_hash(password):
+    return hashlib.md5(password.encode('utf-8')).hexdigest()
+
+
+def get_cipher():
+    secret_key = b'connection_manager_key20220821'
+    cipher = AES.new(secret_key, AES.MODE_ECB)
+
+    return cipher
+
+
+def encript_password(password):
+    cipher = get_cipher()
+
+    encoded = base64.encodebytes(cipher.encrypt(password))
+
+    return encoded
+
+
+def decript_password(password):
+    cipher = get_cipher()
+    decoded = base64.decodebytes(cipher.decrypt(password))
+
+    return decoded
 
 
 class DatabaseTypeModel(Base):
