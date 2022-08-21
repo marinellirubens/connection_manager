@@ -4,7 +4,7 @@
 
 from abc import abstractmethod
 from database import models
-from flask import jsonify
+from flask import jsonify, request
 # from flask import Response, request, send_file
 from flask_restful import Resource
 from sqlalchemy import func
@@ -28,7 +28,8 @@ class BasicTypes(Resource):
     def get(self):
         """Method to handle get requests for type tables."""
         rows = app.session.query(self.model_class).all()
-        app.logger.debug(f"Returning all {self.__class__.__name__} rows")
+        app.logger.debug(
+            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
 
         return {self.model_class.__tablename__: [row.to_json() for row in rows]}
 
@@ -47,9 +48,14 @@ class BasicTypeSingle(Resource):
             .where(self.model_class.id == param)
 
         if row.count() == 0:
-            return jsonify(
-                error=f'No information found on {self.model_class.__tablename__} found'), 401
+            error_message = f'No information found on {self.__class__.__name__} found'
+            app.logger.debug(f'[{request.authorization.username}] {error_message}')
 
+            return jsonify(error=error_message), 401
+
+        app.logger.debug(
+            f'[{request.authorization.username}] '
+            f'Returning {self.__class__.__name__} id {param}')
         return row[0].to_json()
 
     @auth.login_required
@@ -63,17 +69,21 @@ class BasicTypeSingle(Resource):
             .where(self.model_class.description == param)
 
         if row.count() > 0:
-            return jsonify(error=f'{self.model_class} id already exists', id=row[0].id), 401
+            return jsonify(
+                error=f'[{request.authorization.username}] '
+                      f'{self.__class__.__name__} id already exists',
+                id=row[0].id), 401
 
         max_id = app.session.query(func.max(self.model_class.id))[0]
         next_id = int(max_id[0]) + 1
         app.session.bulk_save_objects([self.model_class(next_id, param)])
         app.session.commit()
 
-        app.logger.debug(f"{self.model_class}: {next_id} created successfully")
+        message = f"{self.__class__.__name__}:"+\
+                  f" {next_id} created successfully"
+        app.logger.debug(f"[{request.authorization.username}] " + message)
 
-        return jsonify(message=f'{self.model_class}: {next_id} created successfully',
-                       database_id=next_id)
+        return jsonify(message=message, database_id=next_id)
 
 
 class DatabaseTypes(BasicTypes):
