@@ -1,10 +1,17 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, ColumnDefault
-from sqlalchemy.ext.declarative import declarative_base
-import hashlib
-from sqlalchemy.orm import Session
-from Crypto.Cipher import AES
+"""Module to contain the database models and related functions."""
 import base64
+import hashlib
+from datetime import datetime
+
+from Crypto.Cipher import AES
+from sqlalchemy import Column
+from sqlalchemy import ColumnDefault
+from sqlalchemy import Date
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 
 
 Base = declarative_base()
