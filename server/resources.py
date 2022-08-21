@@ -12,7 +12,7 @@ from server.authentication import auth
 from server.app import App
 
 
-app = App('main')
+app: Flask = App('main')
 
 
 # TODO: Implement other verbs on the resources
@@ -30,7 +30,7 @@ class BasicTypes(Resource):
         rows = app.session.query(self.model_class).all()
         app.logger.debug(
             f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
-        
+
         resp = {self.model_class.__tablename__: [row.to_json() for row in rows]}
         return resp
 
@@ -80,7 +80,7 @@ class BasicTypeSingle(Resource):
         app.session.bulk_save_objects([self.model_class(next_id, param)])
         app.session.commit()
 
-        message = f"{self.__class__.__name__}:"+\
+        message = f"{self.__class__.__name__}:" + \
                   f" {next_id} created successfully"
         app.logger.debug(f"[{request.authorization.username}] " + message)
 
@@ -185,7 +185,7 @@ class Users(BasicTypes):
         super().__init__(*args, **kwargs)
 
         self.model_class = models.UserModel
-        
+
 
 class UserGroups(BasicTypes):
     """Class to handle user requests"""
