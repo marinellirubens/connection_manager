@@ -159,8 +159,12 @@ class FunctionPermissionsModel(Base):
         self.group_id = group_id
         self.function_id = function_id
         
-    def to_json(self):
-        return dict(id=self.id, group_id=self.group_id, function_id=self.function_id)
+    def to_json(self, session: Session):
+        group = session.query(GroupModel).filter(GroupModel.user_id == self.group_id).first()
+        function = session.query(FunctionTypeModel).filter(
+            FunctionTypeModel.id == self.function_id).first()
+
+        return dict(id=self.id, group=group.to_json(), function=function.to_json())
 
 
 class DatabaseModel(Base):
