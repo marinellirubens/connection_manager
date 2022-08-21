@@ -87,7 +87,7 @@ def initiate_db(database_directory: str = 'sqlite') -> tuple:
     if not os.path.exists(database_destination):
         poputate_database = True
 
-    engine = create_engine(f'sqlite:///{database_destination}', echo=True,
+    engine = create_engine(f'sqlite:///{database_destination}', echo=False,
                            connect_args={'check_same_thread': False})
     session = sessionmaker(bind=engine, autocommit=False, autoflush=False)()
 
