@@ -17,22 +17,65 @@ from sqlalchemy.orm import Session
 Base = declarative_base()
 
 
-def format_date(date):
+def format_date(date: datetime):
+    """Formats a date to string so it can be showed on a json response.
+
+    Example:
+        >>> format_date(datetime(2020, 8, 21))
+        '2020-08-21'
+
+    :param date: Date to be formatted.
+    :type date: datetime
+    :return: Formatted date.
+    :rtype: str
+    """
     return datetime.strftime(date, '%Y-%m-%d')
 
 
-def password_hash(password):
+def password_hash(password: str) -> str:
+    """Hashes a password, hashs are not reversible, so if you need to reverse after
+    use encript_password instead.
+
+    Example:
+        >>> password_hash('password')
+        '5f4dcc3b5aa765d61d8327deb882cf99'
+
+    :param password: Password to be hashed.
+    :type password: str
+    :return: Hashed password.
+    :rtype: str
+    """
     return hashlib.md5(password.encode('utf-8')).hexdigest()
 
 
-def get_cipher():
+def get_cipher() -> AES:
+    """Returns a cipher object to encript and decript passwords.
+
+    :return: Cipher object.
+    :rtype: AES
+    """
     secret_key = b'connection_manager_key20220821'
     cipher = AES.new(secret_key, AES.MODE_ECB)
 
     return cipher
 
 
-def encript_password(password):
+def encript_password(password: str) -> bytes:
+    """Encripts a password, encripted passwords are reversible, so if you need to
+    hash it, use password_hash instead.
+
+    Example:
+        >>> encript_password('password')
+        'b\\x1d\\x8c\\x97\\x19\\x2f\\xdb\\x28\\xdd\\x3c\\x81\\x99\\x2d\\x02\\xd0\\x5f'
+
+        >>> decript_password(encript_password('password'))
+        b'password'
+
+    :param password: Password to be encripted.
+    :type password: str
+    :return: Encripted password.
+    :rtype: bytes
+    """
     cipher = get_cipher()
 
     encoded = base64.encodebytes(cipher.encrypt(password))
@@ -40,7 +83,19 @@ def encript_password(password):
     return encoded
 
 
-def decript_password(password):
+def decript_password(password: str) -> bytes:
+    """Decripts a password, encripted by encript_password.
+
+    Example:
+        >>> password='b\\x1d\\x8c\\x97\\x19\\x2f\\xdb\\x28\\xdd\\x3c\\x81\\x99\\x2d\\x02\\xd0\\x5f'
+        >>> decript_password(password)
+        b'password'
+
+    :param password: Password to be decripted.
+    :type password: str
+    :return: Decripted password.
+    :rtype: bytes
+    """
     cipher = get_cipher()
     decoded = base64.decodebytes(cipher.decrypt(password))
 
