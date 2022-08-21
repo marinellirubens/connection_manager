@@ -115,14 +115,10 @@ class UserModel(Base):
 
     def __init__(self, name, password):
         self.name = name
-        self.password = self.password_hash(password)
-
-    @staticmethod
-    def password_hash(password):
-        return hashlib.md5(password.encode('utf-8')).hexdigest()
+        self.password = password_hash(password)
 
     def validate_password(self, password):
-        return self.password == self.password_hash(password)
+        return self.password == password_hash(password)
 
     def to_json(self):
         user_json = dict(
