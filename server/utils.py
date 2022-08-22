@@ -23,7 +23,7 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.DatabaseType,
                      '/database_type/<param>',
                      methods=['GET', 'POST', 'DELETE'])
-    api.add_resource(resources.DatabaseTypes, '/database_type/', '/', methods=['GET'])
+    api.add_resource(resources.DatabaseTypes, '/database_type/', methods=['GET'])
 
     api.add_resource(resources.ConnectionTypes, '/connection_type/', methods=['GET'])
     api.add_resource(resources.ConnectionType, '/connection_type/<param>', methods=['GET', 'POST'])

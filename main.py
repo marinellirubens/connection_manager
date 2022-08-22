@@ -1,26 +1,25 @@
 """Aplication to manage database connections and store information like ip,ports,services, etc.
 The ideia is to store passwords, usernames, etc. in a database and then use the information to
 Also server informations and types of operating systems."""
+import os
 
-from server.utils import create_app
-from flask import Flask
 from config.logs import set_logger
+from server.utils import create_app
 
 
-# TODO: Move that to config files or cli arguments
-DIRECTORY_FILES = './files'
-DIRECTORY_LOGS = './logs'
-DIRECTORY_DATABASE = './sqlite'
-app: Flask = create_app('main', DIRECTORY_DATABASE, DIRECTORY_LOGS, DIRECTORY_FILES)
-
-
-def main():
+def main(*args, **kwargs):
     """Main function of the application."""
-    # TODO: implement cli arguments and parsing
-    # TODO: implement logging
+    directory_files = kwargs.get('directory_files', './files')
+    directory_logs = kwargs.get('directory_logs', './logs')
+    directory_database = kwargs.get('directory_database', './sqlite')
 
-    set_logger(app, DIRECTORY_LOGS)
-    app.run(host='127.0.0.1', port='7009', debug=False)
+    app = create_app('main', directory_database, directory_logs, directory_files)
+    app.logger.info(os.getenv('ADMIN_PASSWORD'))
+
+    if kwargs.get('debug', False):
+        set_logger(app, directory_logs)
+        app.run(host='127.0.0.1', port='7009', debug=False)
+    return app
 
 
 if __name__ == '__main__':
