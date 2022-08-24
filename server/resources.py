@@ -24,11 +24,7 @@ app: Flask = App('main')
 # TODO: Implement other verbs on the resources
 
 class BasicTypes(Resource):
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = None
+    model_class = None
 
     @auth.login_required
     def get(self):
@@ -43,11 +39,7 @@ class BasicTypes(Resource):
 
 class BasicTypeSingle(Resource):
     """Method to handle post requests for table when specific type requested."""
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = None
+    model_class = None
 
     @auth.login_required
     def get(self, param):
@@ -95,110 +87,102 @@ class BasicTypeSingle(Resource):
 
 class DatabaseTypes(BasicTypes):
     """Method to handle post requests for database_type table when all lines requested."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.DatabaseTypeModel
+    model_class = models.DatabaseTypeModel
 
 
 class DatabaseType(BasicTypeSingle):
     """Method to handle post requests for database_type table when specific database type requested.
     """
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.DatabaseTypeModel
+    model_class = models.DatabaseTypeModel
 
 
 class ConnectionTypes(BasicTypes):
     """Method to handle post requests for connection_type table when all lines requested."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.ConnectionTypeModel
+    model_class = models.ConnectionTypeModel
 
 
 class ConnectionType(BasicTypeSingle):
     """Method to handle post requests for connection_type table when specific
     connection type requested.
     """
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.ConnectionTypeModel
+    model_class = models.ConnectionTypeModel
 
 
 class ServerTypes(BasicTypes):
     """Method to handle post requests for server_type table when all lines requested."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.ServerTypeModel
+    model_class = models.ServerTypeModel
 
 
 class ServerType(BasicTypeSingle):
     """Method to handle post requests for server_type table when specific
     connection type requested.
     """
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.ServerTypeModel
+    model_class = models.ServerTypeModel
 
 
 class FunctionTypes(BasicTypes):
     """Method to handle post requests for function_type table when all lines requested."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.FunctionTypeModel
+    model_class = models.FunctionTypeModel
 
 
 class FunctionType(BasicTypeSingle):
     """Method to handle post requests for function_type table when specific
     function type requested.
     """
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.FunctionTypeModel
+    model_class = models.FunctionTypeModel
 
 
 class Groups(BasicTypes):
     """Method to handle post requests for groups table when all lines requested."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.GroupModel
+    model_class = models.GroupModel
 
 
 class Group(BasicTypeSingle):
     """Method to handle post requests for groups table when specific group requested."""
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.model_class = models.GroupModel
+    model_class = models.GroupModel
 
 
 class Users(BasicTypes):
     """Class to handle user requests"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    model_class = models.UserModel
+
+
+class User(BasicTypeSingle):
+    """Class to handle user single request"""
+    model_class = models.UserModel
 
         self.model_class = models.UserModel
 
 
 class UserGroups(BasicTypes):
     """Class to handle user requests"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    model_class = models.UserGroupModel
 
-        self.model_class = models.UserGroupModel
+
+def password_complexity_check(user, password) -> Tuple[bool, str]:
+    """Method to check the complexity of a given password
+
+    :param user: user to validate with password
+    :param password: password to be validated
+    :return: True if is valid otherwise false
+    :rtype: tuple
+    """
+    if user == password:
+        return False, 'User and password cant be the same'
+    
+    if len(password.strip()) < 8:
+        return False, 'Password needs to be at least 8 characters long'
+    
+    if '123456'in password:
+        return False, 'Password should not contain sequetial characteres'
+    
+    if re.match(r'(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})', password):
+        return False, 'Invalid password'
+    
+    if password in ['admin', 'password', 'senha']:
+        return False, 'Invalid password'
+
+    return True, 'Valid'
 
 
 '''
