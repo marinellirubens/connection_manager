@@ -56,7 +56,7 @@ def populate_type_table(session, table, enum):
     for item in enum:
         if session.query(table).where(table.id == item.value).count() > 0:
             continue
-        objects.append(table(item.value, item.name))
+        objects.append(table(item.name))
 
     session.bulk_save_objects(objects)
     session.commit()
