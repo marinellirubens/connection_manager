@@ -151,7 +151,45 @@ class User(BasicTypeSingle):
     """Class to handle user single request"""
     model_class = models.UserModel
 
-        self.model_class = models.UserModel
+    @app.route('/user', methods=['POST'])
+    @auth.login_required
+    @staticmethod
+    def post():
+        """Method to handle the user insert"""
+        name = request.headers.get('name', None)
+        password = request.headers.get('password', None)
+
+        if not any([name, password]):
+            return {
+                'error':
+                'parameters not correct you need to inform (name, password, connection_type)'
+            }, 400
+
+        row = app.session.query(models.UserModel).\
+            where(models.UserModel.name == name)
+
+        if row.count() > 0:
+            return dict(
+                error=' user name already exists',
+                name=name
+            ), 401
+
+        password_validation = password_complexity_check(name, password)
+
+        if not password_validation[0]:
+            return {
+                'error': password_validation[1]
+            }, 401
+
+        user = models.UserModel(name, password)
+        app.session.bulk_save_objects([user])
+        app.session.commit()
+
+        row = app.session.query(models.UserModel).\
+            where(models.UserModel.name == name).first()
+
+        return {'success': f'User {name} created.', 'id': row.id}
+
 
 
 class UserGroups(BasicTypes):
@@ -181,7 +219,7 @@ def password_complexity_check(user, password) -> Tuple[bool, str]:
     
     if password in ['admin', 'password', 'senha']:
         return False, 'Invalid password'
-
+    
     return True, 'Valid'
 
 
