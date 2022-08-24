@@ -2,14 +2,20 @@
 # import os
 # import uuid
 
+import re
 from abc import abstractmethod
+from typing import Tuple
+
 from database import models
-from flask import jsonify, request, Flask
+from flask import Flask
+from flask import jsonify
+from flask import request
 # from flask import Response, request, send_file
 from flask_restful import Resource
 from sqlalchemy import func
-from server.authentication import auth
+
 from server.app import App
+from server.authentication import auth
 
 
 app: Flask = App('main')
