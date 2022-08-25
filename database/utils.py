@@ -66,7 +66,8 @@ def insert_admin_login(session):
     """Method to insert the admin login into the database."""
     admin_group = models.GroupModel(description='admin')
     admin_user = models.UserModel(name='admin', password='admin')
-    session.bulk_save_objects([admin_user, admin_group])
+    admin_user_group = models.UserGroupModel(group_id=1, user_id=1)
+    session.bulk_save_objects([admin_user, admin_group, admin_user_group])
     session.commit()
 
 
