@@ -254,19 +254,19 @@ def password_complexity_check(user, password) -> Tuple[bool, str]:
     """
     if user == password:
         return False, 'User and password cant be the same'
-    
+
     if len(password.strip()) < 8:
         return False, 'Password needs to be at least 8 characters long'
-    
-    if '123456'in password:
+
+    if '123456' in password:
         return False, 'Password should not contain sequetial characteres'
-    
+
     if re.match(r'(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})', password):
         return False, 'Invalid password'
-    
+
     if password in ['admin', 'password', 'senha']:
         return False, 'Invalid password'
-    
+
     return True, 'Valid'
 
 
