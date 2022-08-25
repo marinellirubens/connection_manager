@@ -106,48 +106,56 @@ class DatabaseTypeModel(Base):
     __tablename__ = 'database_type'
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(50), nullable=False, unique=True)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
 
     def __init__(self, description):
         self.description = description
 
     def to_json(self):
-        return dict(id=self.id, description=self.description)
+        return dict(id=self.id, description=self.description,
+                    creation_date=format_date(self.creation_date))
 
 
 class ConnectionTypeModel(Base):
     __tablename__ = 'connection_type'
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(50), nullable=False, unique=True)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
 
     def __init__(self, description):
         self.description = description
 
     def to_json(self):
-        return dict(id=self.id, description=self.description)
+        return dict(id=self.id, description=self.description,
+                    creation_date=format_date(self.creation_date))
 
 
 class ServerTypeModel(Base):
     __tablename__ = 'server_type'
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(50), nullable=False, unique=True)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
 
     def __init__(self, description):
         self.description = description
 
     def to_json(self):
-        return dict(id=self.id, description=self.description)
+        return dict(id=self.id, description=self.description,
+                    creation_date=format_date(self.creation_date))
 
 
 class FunctionTypeModel(Base):
     __tablename__ = 'function_type'
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column(String(255), nullable=False, unique=True)
+    creation_date = Column(Date, nullable=False, default=ColumnDefault(datetime.now()))
 
     def __init__(self, description):
         self.description = description
 
     def to_json(self):
-        return dict(id=self.id, description=self.description)
+        return dict(id=self.id, description=self.description,
+                    creation_date=format_date(self.creation_date))
 
 
 class GroupModel(Base):
@@ -160,7 +168,8 @@ class GroupModel(Base):
         self.description = description
 
     def to_json(self):
-        return dict(id=self.id, description=self.description)
+        return dict(id=self.id, description=self.description,
+                    creation_date=format_date(self.creation_date))
 
 
 class UserModel(Base):
