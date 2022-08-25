@@ -1,9 +1,11 @@
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
+import os
 from enum import Enum, auto
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import sessionmaker
+
 import database.models as models
-import os
 
 
 class ServerTypeEnum(Enum):
@@ -50,8 +52,17 @@ class FunctionTypeEnum(Enum):
     DELETE_LOGIN = auto()
 
 
-def populate_type_table(session, table, enum):
-    """Method to populate the type tables."""
+def populate_type_table(session, table, enum) -> None:
+    """Method to populate the type tables.
+
+    :param session: database session
+    :type session: scoped_session
+    :param table: table model
+    :type table: models.Base
+    :param enum: Enum with the insert
+    :type enum: Enum
+    :rtype: None
+    """
     objects = []
     for item in enum:
         if session.query(table).where(table.id == item.value).count() > 0:
@@ -63,15 +74,27 @@ def populate_type_table(session, table, enum):
 
 
 def insert_admin_login(session):
-    """Method to insert the admin login into the database."""
+    """Method to insert the admin login into the database.
+
+    :param session: database session
+    :type session: scoped_session
+    :return: None
+    """
     admin_group = models.GroupModel(description='admin')
     admin_user = models.UserModel(name='admin', password='admin')
     admin_user_group = models.UserGroupModel(group_id=1, user_id=1)
+
     session.bulk_save_objects([admin_user, admin_group, admin_user_group])
     session.commit()
 
 
 def insert_types(session: scoped_session):
+    """Insert the basec types for the initial usage.
+
+    :param session: database session
+    :type session: scoped_session
+    :return: None
+    """
     populate_type_table(session, models.ServerTypeModel, ServerTypeEnum)
     populate_type_table(session, models.ConnectionTypeModel, ConnectionTypeEnum)
     populate_type_table(session, models.DatabaseTypeModel, DatabaseEnum)
@@ -81,7 +104,13 @@ def insert_types(session: scoped_session):
 
 
 def initiate_db(database_directory: str = 'sqlite') -> tuple:
-    """Method to initiate the sqlit database using sqlalchemy."""
+    """Method to initiate the sqlit database using sqlalchemy.
+
+    :param database_directory: directory for the database file
+    :type database_directory: str
+    :return: engine and session for database manipulation
+    :rtype: tuple
+    """
     database_destination = os.path.join(database_directory, 'api.db')
 
     poputate_database = False
