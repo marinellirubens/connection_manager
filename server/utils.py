@@ -2,6 +2,7 @@
 from config.utils import create_directories
 from database.utils import initiate_db
 from flask import Flask
+from flask_cors import CORS
 from flask_restful import Api
 
 from server import resources
@@ -14,6 +15,7 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     create_directories([database_directory, directory_files, log_dir])
 
     app = App(app_name)
+    CORS(app)
     api = Api(app)
 
     engine, session = initiate_db(database_directory)
