@@ -213,7 +213,7 @@ class UserGroupModel(Base):
         group = session.query(GroupModel).filter(GroupModel.id == self.group_id).first()
         user = session.query(UserModel).filter(UserModel.id == self.user_id).first()
 
-        return dict(id=self.id, group_id=group.to_json(), user_id=user.to_json())
+        return dict(id=self.id, group=group.to_json(), user=user.to_json())
 
 
 class FunctionPermissionsModel(Base):
