@@ -35,7 +35,7 @@ class BasicTypes(Resource, ABC):
     @auth.login_required
     def post(self):
         """Method to handle post requests for type tables."""
-        data = request.get_data()
+        data = json.loads(request.get_data().decode('utf-8'))
 
         if 'description' not in data:
             return {'error': 'Invalid description provided'}, 401
@@ -238,10 +238,98 @@ class User(BasicTypeSingle):
     """Class to handle user single request"""
     model_class = models.UserModel
 
+    @auth.login_required
+    def put(self, id):
+        """Method to handle insert of new type.
+
+        :param param: type description
+        :return: type id that was inserted
+        """
+        verifier, row = check_if_info_exists(self.model_class, id)
+        if not verifier:
+            return dict(
+                error=f'{self.__class__.__name__} id not exists',
+                id=id), 401
+
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        if ['name', 'password'] not in data:
+            return {'error': 'Invalid description provided'}, 401
+
+        row.password = data['password']
+        row.name = data['name']
+
+        app.session.bulk_save_objects([row])
+        app.session.commit()
+
+        message = f"{self.__class__.__name__}:" + \
+                  f" {row.id} saved successfully"
+        app.logger.debug(f"[{request.authorization.username}] " + message)
+
+        return dict(message=message, register=row.to_json())
+
 
 class UserGroups(BasicTypes):
     """Class to handle user requests"""
     model_class = models.UserGroupModel
+
+    @auth.login_required
+    def get(self):
+        """Method to handle get requests for type tables."""
+        rows = app.session.query(self.model_class).all()
+        app.logger.debug(
+            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
+
+        resp = {self.model_class.__tablename__: [row.to_json(app.session) for row in rows]}
+        return resp
+
+    @auth.login_required
+    def post(self):
+        """Method to handle post requests for type tables."""
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        for item in ['group_id', 'user_id']:
+            if item not in data:
+                return {'error': 'Invalid body provided'}, 401
+
+        if not check_if_info_exists(models.GroupModel, data['group_id'])[0]:
+            return {'error': 'Group not found'}, 401
+
+        if not check_if_info_exists(models.UserModel, data['user_id'])[0]:
+            return {'error': 'User not found'}, 401
+
+        row = app.session.query(self.model_class).\
+            where(self.model_class.group_id == data['group_id'] and
+                  self.model_class.user_id == data['user_id']).first()
+        if row:
+            return dict(
+               error=f'{self.__class__.__name__}: Combination already exists'
+            ), 401
+
+        app.session.bulk_save_objects([self.model_class(data["group_id"], data['user_id'])])
+        app.session.commit()
+
+        row = app.session.query(self.model_class).\
+            where(self.model_class.group_id == data['group_id'] and
+                  self.model_class.user_id == data['user_id']).first()
+
+        return {'success': 'Registered successfully', 'id': row.id}
+
+
+def check_if_info_exists(model, id) -> tuple:
+    """Checks if the model exists already
+
+    :param model: model class
+    :type model: Base
+    :param id: id
+    :type id: str
+    """
+    row = app.session.query(model).\
+        where(model.id == id).first()
+    if not row:
+        return False, None
+
+    return True, row
 
 
 def password_complexity_check(user, password) -> Tuple[bool, str]:
@@ -268,35 +356,3 @@ def password_complexity_check(user, password) -> Tuple[bool, str]:
         return False, 'Invalid password'
 
     return True, 'Valid'
-
-
-'''
-class Teste(Resource):
-    """Class to handle requests to the server."""
-    @auth.login_required
-    def get(self, file_id=None) -> Response:
-        """Method to handle requests to the server."""
-        if not os.path.exists(os.path.join('files', file_id)):
-            return {'error': 'file not found'}, 404
-
-        return send_file(
-            path_or_file=open(os.path.join('files', file_id), 'rb'),
-            download_name=file_id,
-            mimetype='image/png')
-
-    @auth.login_required
-    def post(self) -> Response:
-        """Method to handle requests to the server."""
-        request_data = request.files['teste']
-        file_id = str(uuid.uuid4())
-        request_data.save(os.path.join('files', file_id))
-        return {'file_id': file_id}, 200
-
-    @auth.login_required
-    def delete(self, file_id) -> Response:
-        if not os.path.exists(os.path.join('files', file_id)):
-            return {'error': 'file not found'}, 404
-
-        os.remove(os.path.join('files', file_id))
-        return {'message': 'file deleted'}, 200
-'''
