@@ -4,11 +4,13 @@ from abc import ABC
 from typing import Tuple
 import json
 
-
 from database import models
+from enum import Enum
+from dataclasses import dataclass
 from flask import Flask
 from flask import request
 from flask_restful import Resource
+from typing import Callable
 
 from server.app import App
 from server.authentication import auth
@@ -332,6 +334,19 @@ def check_if_info_exists(model, id) -> tuple:
     return True, row
 
 
+@dataclass
+class LambdaValidation:
+    lambda_function: Callable
+    return_message: str
+
+
+class LambdaPassword(Enum):
+    EQUALS: LambdaValidation = LambdaValidation(lambda x, y: x == y,
+                                                'User and password cant be the same')
+    SIZE: LambdaValidation = LambdaValidation(lambda x: len(x.strip()) < 8,
+                                              'Password needs to be at least 8 characters long')
+
+
 def password_complexity_check(user, password) -> Tuple[bool, str]:
     """Method to check the complexity of a given password
 
@@ -340,8 +355,9 @@ def password_complexity_check(user, password) -> Tuple[bool, str]:
     :return: True if is valid otherwise false
     :rtype: tuple
     """
-    if user == password:
-        return False, 'User and password cant be the same'
+
+    if LambdaPassword.EQUALS.value.lambda_function(user, password):
+        return False, LambdaPassword.EQUALS.value.return_message
 
     if len(password.strip()) < 8:
         return False, 'Password needs to be at least 8 characters long'
