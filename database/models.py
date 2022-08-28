@@ -252,6 +252,17 @@ class DatabaseModel(Base):
         self.sid = sid
         self.database_type_id = database_type_id
 
+    @staticmethod
+    def get_fields() -> tuple:
+        """Function to return fields that should be used on the insert of the model"""
+        return ('description', 'host', 'port', 'sid', 'database_type_id')
+
+    @staticmethod
+    def get_requirements() -> tuple:
+        """Function to return the requirements for the insert"""
+        requirements = ((DatabaseTypeModel, 'database_type_id'), )
+        return requirements
+
     def to_json(self, *args, **kwargs):
         return dict(
             id=self.id,
