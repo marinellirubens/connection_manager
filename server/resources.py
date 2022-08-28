@@ -326,6 +326,22 @@ class UserGroups(BasicTypes):
         return {'success': 'Registered successfully', 'id': row.id}
 
 
+def check_requirements(model_class, id) -> Tuple[bool, str]:
+    """Checks if the requirement exists
+
+    :param model_class: Model class name
+    :type model_class: Callable
+    :param id: The id of the model
+    :type id: int
+    :return: Tuple with the result
+    :rtype: tuple
+    """
+    if not check_if_info_exists(model_class, id)[0]:
+        return False, f'{model_class.__name__} not found'
+
+    return True, 'Info exists'
+
+
 def check_if_info_exists(model, id) -> tuple:
     """Checks if the model exists already
 
