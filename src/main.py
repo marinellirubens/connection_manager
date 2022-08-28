@@ -9,9 +9,11 @@ from server.utils import create_app
 
 def main(*args, **kwargs):
     """Main function of the application."""
-    directory_files = kwargs.get('directory_files', './files')
-    directory_logs = kwargs.get('directory_logs', './logs')
-    directory_database = kwargs.get('directory_database', './sqlite')
+    cwd = os.getcwd()
+
+    directory_files = kwargs.get('directory_files', f'{cwd}/files')
+    directory_logs = kwargs.get('directory_logs', f'{cwd}/logs')
+    directory_database = kwargs.get('directory_database', f'{cwd}/sqlite')
 
     app = create_app('main', directory_database, directory_logs, directory_files)
     app.logger.info(os.getenv('ADMIN_PASSWORD'))
