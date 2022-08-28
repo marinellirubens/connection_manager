@@ -18,6 +18,17 @@ app: Flask = App('main')
 
 # TODO: Implement other verbs on the resources
 
+
+def basic_get(session, model_class, request_class_name):
+    """Method to handle get requests for type tables."""
+    rows = app.session.query(model_class).all()
+    app.logger.debug(
+        f"[{request.authorization.username}] Returning all {request_class_name} rows")
+
+    resp = {model_class.__tablename__: [row.to_json(session) for row in rows]}
+    return resp
+
+
 class BasicTypes(Resource, ABC):
     model_class = None
 
