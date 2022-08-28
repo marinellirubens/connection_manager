@@ -1,3 +1,4 @@
+"""Module to handle utillity methods"""
 import re
 from typing import Tuple
 
@@ -6,9 +7,18 @@ from database.utils import initiate_db
 from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Api
+from flasgger import Swagger
 
 from server import resources
 from server.app import App
+
+template = {
+    "swagger": "2.0",
+    "info": {},
+    "host": "localhost",
+    "basePath": "api",
+    "schemes": ["http"]
+}
 
 
 app: Flask = App('main')
@@ -19,7 +29,8 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     """Method to handle requests to the server."""
     create_directories([database_directory, directory_files, log_dir])
 
-    app = App(app_name)
+    app: Flask = App(app_name)
+
     CORS(app)
     api = Api(app)
 
@@ -52,6 +63,8 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.FunctionPermissions, '/function_permissions/', methods=basic_methods)
     api.add_resource(resources.Databases, '/databases/', methods=basic_methods)
 
+    swagger = Swagger(app, template=template)
+    print(swagger)
     return app
 
 
