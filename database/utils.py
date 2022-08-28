@@ -73,6 +73,17 @@ def populate_type_table(session, table, enum) -> None:
     session.commit()
 
 
+def insert_admin_functions(session):
+    """Method to create the functions to admin registration"""
+    functions = []
+    for function in FunctionTypeEnum:
+        functions.append(
+            models.FunctionPermissionsModel(group_id=1, function_id=function.value))
+
+    session.bulk_save_objects(functions)
+    session.commit()
+
+
 def insert_admin_login(session):
     """Method to insert the admin login into the database.
 
