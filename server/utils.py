@@ -8,6 +8,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_restful import Api
 from flasgger import Swagger
+import json
 
 from server import resources
 from server.app import App
@@ -147,3 +148,27 @@ def basic_get(session, model_class, request_class_name):
 
     resp = {model_class.__tablename__: [row.to_json(session) for row in rows]}
     return resp
+
+
+def basic_post(session, request, model_class):
+    """Basic post request"""
+    data = json.loads(request.get_data().decode('utf-8'))
+
+    if 'description' not in data:
+        return {'error': 'Invalid description provided'}, 401
+
+    row = session.query(model_class).\
+        where(model_class.description == data['description']).first()
+
+    if row:
+        return dict(
+           error=f'{model_class.__class__.__name__}: {data["description"]} already exists'
+        ), 401
+
+    session.bulk_save_objects([model_class(data["description"])])
+    session.commit()
+
+    row = session.query(model_class).\
+        where(model_class.description == data['description']).first()
+
+    return {'success': 'Registered successfully', 'id': row.id}
