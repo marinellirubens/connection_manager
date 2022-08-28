@@ -1,5 +1,5 @@
 """Method to handle the resource for the API"""
-from abc import ABC
+from abc import ABC, abstractmethod
 import json
 
 from database import models
@@ -21,44 +21,17 @@ app: Flask = App('main')
 class BasicTypes(Resource, ABC):
     model_class = None
 
-    @auth.login_required
+    @abstractmethod
     def get(self):
         """Method to handle get requests for type tables."""
-        rows = app.session.query(self.model_class).all()
-        app.logger.debug(
-            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
 
-        resp = {self.model_class.__tablename__: [row.to_json() for row in rows]}
-        return resp
-
-    @auth.login_required
+    @abstractmethod
     def post(self):
         """Method to handle post requests for type tables."""
-        data = json.loads(request.get_data().decode('utf-8'))
 
-        if 'description' not in data:
-            return {'error': 'Invalid description provided'}, 401
-
-        row = app.session.query(self.model_class).\
-            where(self.model_class.description == data['description']).first()
-
-        if row:
-            return dict(
-               error=f'{self.model_class.__class__.__name__}: {data["description"]} already exists'
-            ), 401
-
-        app.session.bulk_save_objects([self.model_class(data["description"])])
-        app.session.commit()
-
-        row = app.session.query(self.model_class).\
-            where(self.model_class.description == data['description']).first()
-
-        return {'success': 'Registered successfully', 'id': row.id}
-
-    @auth.login_required
+    @abstractmethod
     def options(self):
         """Method to handle options requests for type tables."""
-        return dict(Allow=['POST', 'GET'])
 
 
 class BasicTypeSingle(Resource, ABC):
@@ -137,6 +110,7 @@ class BasicTypeSingle(Resource, ABC):
 class DatabaseTypes(BasicTypes):
     """Method to handle post requests for database_type table when all lines requested."""
     model_class = models.DatabaseTypeModel
+    methods = ['GET', 'POST', 'OPTIONS']
 
     @auth.login_required
     def get(self):
@@ -170,6 +144,103 @@ class DatabaseTypes(BasicTypes):
               example: Unauthorized Access
         """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
+
+    @auth.login_required
+    def post(self):
+        """Method to handle options requests for type tables.
+        ---
+        security:
+          - basicAuth: []
+        parameters:
+          - in: body
+            name: description
+            description: Description of the database
+            schema:
+              $ref: '#/definitions/DatabaseTypeBody'
+
+        definitions:
+          DatabaseTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Database type description
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Database type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the database types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the database types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        return utils.basic_post(app.session, request, self.model_class)
+
+    def options(self):
+        """Method to handle options requests for type tables.
+        ---
+        security:
+          - basicAuth: []
+        parameters:
+          - in: body
+            name: description
+            description: Description of the database
+            schema:
+              $ref: '#/definitions/DatabaseTypeBody'
+
+        definitions:
+          DatabaseTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Database type description
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Database type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the database types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the database types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        return dict(Allow=self.methods)
 
 
 class DatabaseType(BasicTypeSingle):
