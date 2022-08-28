@@ -9,3 +9,5 @@ flask_httpauth==4.5.0
 singleton-decorator==1.0.0
 pycryptodome==3.15.0
 flask_cors==3.0.10
+pytest==7.1.2
+pytest-cov==3.0.0
