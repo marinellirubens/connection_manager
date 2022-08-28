@@ -111,7 +111,7 @@ class DatabaseTypeModel(Base):
     def __init__(self, description):
         self.description = description
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(id=self.id, description=self.description,
                     creation_date=format_date(self.creation_date))
 
@@ -125,7 +125,7 @@ class ConnectionTypeModel(Base):
     def __init__(self, description):
         self.description = description
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(id=self.id, description=self.description,
                     creation_date=format_date(self.creation_date))
 
@@ -139,7 +139,7 @@ class ServerTypeModel(Base):
     def __init__(self, description):
         self.description = description
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(id=self.id, description=self.description,
                     creation_date=format_date(self.creation_date))
 
@@ -153,7 +153,7 @@ class FunctionTypeModel(Base):
     def __init__(self, description):
         self.description = description
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(id=self.id, description=self.description,
                     creation_date=format_date(self.creation_date))
 
@@ -167,7 +167,7 @@ class GroupModel(Base):
     def __init__(self, description):
         self.description = description
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(id=self.id, description=self.description,
                     creation_date=format_date(self.creation_date))
 
@@ -187,7 +187,7 @@ class UserModel(Base):
     def validate_password(self, password):
         return self.password == password_hash(password)
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         user_json = dict(
             id=self.id,
             name=self.name,
@@ -208,7 +208,7 @@ class UserGroupModel(Base):
         self.group_id = group_id
         self.user_id = user_id
 
-    def to_json(self, session: Session):
+    def to_json(self, session: Session, *args, **kwargs):
 
         group = session.query(GroupModel).filter(GroupModel.id == self.group_id).first()
         user = session.query(UserModel).filter(UserModel.id == self.user_id).first()
@@ -226,7 +226,7 @@ class FunctionPermissionsModel(Base):
         self.group_id = group_id
         self.function_id = function_id
 
-    def to_json(self, session: Session):
+    def to_json(self, session: Session, *args, **kwargs):
         group = session.query(GroupModel).filter(GroupModel.id == self.group_id).first()
         function = session.query(FunctionTypeModel).filter(
             FunctionTypeModel.id == self.function_id).first()
@@ -252,7 +252,7 @@ class DatabaseModel(Base):
         self.sid = sid
         self.database_type_id = database_type_id
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(
             id=self.id,
             description=self.description,
@@ -279,7 +279,7 @@ class ServerModel(Base):
         self.server_type_id = server_type_id
         self.connection_type = connection_type
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(
             id=self.id,
             description=self.description,
@@ -300,7 +300,7 @@ class ServerPermissionsModel(Base):
         self.group_id = group_id
         self.server_id = server_id
 
-    def to_json(self, session: Session):
+    def to_json(self, session: Session, *args, **kwargs):
         group = session.query(GroupModel).filter(GroupModel.user_id == self.group_id).first()
         server = session.query(ServerModel).filter(ServerModel.server_id == self.server_id).first()
 
@@ -319,7 +319,7 @@ class LoginModel(Base):
         self.password = encript_password(password)
         self.connection_type = connection_type
 
-    def to_json(self):
+    def to_json(self, *args, **kwargs):
         return dict(
             id=self.id,
             user=self.user,
@@ -338,7 +338,7 @@ class ConnectionLoginModel(Base):
         self.login_id = login_id
         self.connection_id = connection_id
 
-    def to_json(self, session: Session):
+    def to_json(self, session: Session, *args, **kwargs):
         login = session.query(LoginModel).filter(LoginModel.login_id == self.login_id).first()
         connection = session.query(ServerModel).filter(
             ServerModel.server_id == self.connection_id).first()
