@@ -1,7 +1,5 @@
 """Method to handle the resource for the API"""
-import re
 from abc import ABC
-from typing import Tuple
 import json
 
 from database import models
@@ -18,16 +16,6 @@ app: Flask = App('main')
 
 
 # TODO: Implement other verbs on the resources
-
-
-def basic_get(session, model_class, request_class_name):
-    """Method to handle get requests for type tables."""
-    rows = app.session.query(model_class).all()
-    app.logger.debug(
-        f"[{request.authorization.username}] Returning all {request_class_name} rows")
-
-    resp = {model_class.__tablename__: [row.to_json(session) for row in rows]}
-    return resp
 
 
 class BasicTypes(Resource, ABC):
@@ -228,7 +216,7 @@ class Users(BasicTypes):
                 name=name
             ), 401
 
-        password_validation = password_complexity_check(name, password)
+        password_validation = utils.password_complexity_check(name, password)
 
         if not password_validation[0]:
             return {
@@ -256,7 +244,7 @@ class User(BasicTypeSingle):
         :param param: type description
         :return: type id that was inserted
         """
-        verifier, row = check_if_info_exists(self.model_class, id)
+        verifier, row = utils.check_if_info_exists(self.model_class, id)
         if not verifier:
             return dict(
                 error=f'{self.__class__.__name__} id not exists',
@@ -303,10 +291,10 @@ class UserGroups(BasicTypes):
             if item not in data:
                 return {'error': 'Invalid body provided'}, 401
 
-        if not check_if_info_exists(models.GroupModel, data['group_id'])[0]:
+        if not utils.check_if_info_exists(models.GroupModel, data['group_id'])[0]:
             return {'error': 'Group not found'}, 401
 
-        if not check_if_info_exists(models.UserModel, data['user_id'])[0]:
+        if not utils.check_if_info_exists(models.UserModel, data['user_id'])[0]:
             return {'error': 'User not found'}, 401
 
         row = app.session.query(self.model_class).\
@@ -350,10 +338,10 @@ class FunctionPermissions(Resource):
             if item not in data:
                 return {'error': 'Invalid body provided'}, 401
 
-        if not check_if_info_exists(models.GroupModel, data['group_id'])[0]:
+        if not utils.check_if_info_exists(models.GroupModel, data['group_id'])[0]:
             return {'error': 'Group not found'}, 401
 
-        if not check_if_info_exists(models.FunctionTypeModel, data['function_id'])[0]:
+        if not utils.check_if_info_exists(models.FunctionTypeModel, data['function_id'])[0]:
             return {'error': 'Function not found'}, 401
 
         row = app.session.query(self.model_class).\
@@ -381,7 +369,7 @@ class Databases(Resource):
     @auth.login_required
     def get(self):
         """Method to handle get requests"""
-        return basic_get(app.session, self.model_class, self.__class__.__name__)
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
@@ -398,7 +386,7 @@ class Databases(Resource):
 
         requirements = self.model_class.get_requirements()
         for requirement in requirements:
-            requirement_result = check_requirements(requirement[0], data[requirement[1]])
+            requirement_result = utils.check_requirements(requirement[0], data[requirement[1]])
             if not requirement_result[0]:
                 return {'error': requirement_result[1]}, 401
 
@@ -413,62 +401,3 @@ class Databases(Resource):
         print(model.to_json())
 
         return {'success': 'Registered successfully'}
-
-
-def check_requirements(model_class, id) -> Tuple[bool, str]:
-    """Checks if the requirement exists
-
-    :param model_class: Model class name
-    :type model_class: Callable
-    :param id: The id of the model
-    :type id: int
-    :return: Tuple with the result
-    :rtype: tuple
-    """
-    if not check_if_info_exists(model_class, id)[0]:
-        return False, f'{model_class.__name__} not found'
-
-    return True, 'Info exists'
-
-
-def check_if_info_exists(model, id) -> tuple:
-    """Checks if the model exists already
-
-    :param model: model class
-    :type model: Base
-    :param id: id
-    :type id: str
-    """
-    row = app.session.query(model).\
-        where(model.id == id).first()
-    if not row:
-        return False, None
-
-    return True, row
-
-
-def password_complexity_check(user, password) -> Tuple[bool, str]:
-    """Method to check the complexity of a given password
-
-    :param user: user to validate with password
-    :param password: password to be validated
-    :return: True if is valid otherwise false
-    :rtype: tuple
-    """
-
-    if user == password:
-        return False, 'User and password cant be the same'
-
-    if len(password.strip()) < 8:
-        return False, 'Password needs to be at least 8 characters long'
-
-    if '123456' in password:
-        return False, 'Password should not contain sequetial characteres'
-
-    if re.match(r'(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})', password):
-        return False, 'Invalid password'
-
-    if password in ['admin', 'password', 'senha']:
-        return False, 'Invalid password'
-
-    return True, 'Valid'
