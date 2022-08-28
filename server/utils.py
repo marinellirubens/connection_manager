@@ -15,9 +15,21 @@ from server.app import App
 template = {
     "swagger": "2.0",
     "info": {},
-    "host": "localhost",
-    "basePath": "api",
-    "schemes": ["http"]
+    "host": "127.0.0.1:7009",
+    "basePath": "/",
+    "schemes": ["http"],
+    "consumes": [
+        "application/json",
+    ],
+    "produces": [
+        "application/json",
+    ],
+    # "securityDefinitions": {
+    #     "type": "basic"
+    # },
+    # "security": {
+    #     "basicAuth": []
+    # }
 }
 
 

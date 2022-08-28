@@ -138,6 +138,39 @@ class DatabaseTypes(BasicTypes):
     """Method to handle post requests for database_type table when all lines requested."""
     model_class = models.DatabaseTypeModel
 
+    @auth.login_required
+    def get(self):
+        """Method to handle get of database types.
+        ---
+        security:
+          - basicAuth: []
+
+        definitions:
+          DatabaseType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the database type
+              description:
+                type: string
+                description: Database type description
+              creation_date:
+                type: string
+                description: Database type creation date
+        responses:
+          '200':
+            description: A list of the database types
+            schema:
+              $ref: '#/definitions/DatabaseType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
+
 
 class DatabaseType(BasicTypeSingle):
     """Method to handle post requests for database_type table when specific database type requested.
