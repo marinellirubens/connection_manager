@@ -44,5 +44,7 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.User, '/users/<id>', methods=individual_methods)
 
     api.add_resource(resources.UserGroups, '/user_groups/', methods=basic_methods)
+    api.add_resource(resources.FunctionPermissions, '/function_permissions/', methods=basic_methods)
+    api.add_resource(resources.Databases, '/databases/', methods=basic_methods)
 
     return app
