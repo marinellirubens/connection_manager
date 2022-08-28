@@ -1,0 +1,1 @@
+pytest tests -v --cov-report term-missing --cov-report=xml:cov.xml
