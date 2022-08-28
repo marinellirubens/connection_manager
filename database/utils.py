@@ -112,6 +112,7 @@ def insert_types(session: scoped_session):
     populate_type_table(session, models.FunctionTypeModel, FunctionTypeEnum)
 
     insert_admin_login(session)
+    insert_admin_functions(session=session)
 
 
 def initiate_db(database_directory: str = 'sqlite') -> tuple:
