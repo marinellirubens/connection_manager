@@ -9,7 +9,7 @@ from server.utils import create_app
 
 def main(*args, **kwargs):
     """Main function of the application."""
-    cwd = os.getcwd()
+    cwd = kwargs.get('cwd', os.getcwd())
 
     directory_files = kwargs.get('directory_files', f'{cwd}/files')
     directory_logs = kwargs.get('directory_logs', f'{cwd}/logs')
