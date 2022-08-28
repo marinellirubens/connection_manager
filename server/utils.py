@@ -76,6 +76,10 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.FunctionPermissions, '/function_permissions/', methods=basic_methods)
     api.add_resource(resources.Databases, '/databases/', methods=basic_methods)
 
+    # app.config['SWAGGER'] = {
+    #     'ignore_verbs': []
+    # }
+
     swagger = Swagger(app, template=template)
     print(swagger)
     return app
@@ -172,3 +176,103 @@ def basic_post(session, request, model_class):
         where(model_class.description == data['description']).first()
 
     return {'success': 'Registered successfully', 'id': row.id}
+
+
+def basic_single_get(id, app, model_class, request, class_name) -> dict:
+    """Basic method to decouple the get method of some classes
+
+    :param id: id for the model
+    :type id: int
+    :param app: flask app
+    :type app: Flask
+    :param model_class: Model class
+    :type model_class: callable
+    :param request: The request from the client side
+    :type request: request
+    :param class_name: Name of the class using the method
+    :type class_name: str
+    :return: Returns a json object
+    :rtype: dict
+    """
+    row = app.session.query(model_class)\
+        .where(model_class.id == id).first()
+
+    if not row:
+        error_message = f'No information found on {class_name} found'
+        app.logger.debug(f'[{request.authorization.username}] {error_message}')
+
+        return dict(error=error_message), 401
+
+    app.logger.debug(
+        f'[{request.authorization.username}] '
+        f'Returning {class_name} id {id}')
+    return row.to_json()
+
+
+def basic_single_put(id, app, model_class, request, class_name) -> dict:
+    """Method to handle insert of new type.
+
+    :param id: id for the model
+    :type id: int
+    :param app: flask app
+    :type app: Flask
+    :param model_class: Model class
+    :type model_class: callable
+    :param request: The request from the client side
+    :type request: request
+    :param class_name: Name of the class using the method
+    :type class_name: str
+    :return: Returns a json object
+    :rtype: dict
+    """
+    row = app.session.query(model_class)\
+        .where(model_class.id == id).first()
+
+    if not row:
+        return dict(
+            error=f'{class_name} id not exists',
+            id=id), 401
+
+    data = json.loads(request.get_data().decode('utf-8'))
+
+    if 'description' not in data:
+        return {'error': 'Invalid description provided'}, 401
+
+    row.description = data['description']
+
+    app.session.bulk_save_objects([row])
+    app.session.commit()
+
+    message = f"{class_name}:" + \
+              f" {row.id} saved successfully"
+    app.logger.debug(f"[{request.authorization.username}] " + message)
+
+    return dict(message=message, register=row.to_json()), 200
+
+
+def basic_single_delete(id, app, model_class, class_name) -> dict:
+    """Method to handle deleted requests for type tables.
+
+    :param id: id for the model
+    :type id: int
+    :param app: flask app
+    :type app: Flask
+    :param model_class: Model class
+    :type model_class: callable
+    :param class_name: Name of the class using the method
+    :type class_name: str
+    :return: Returns a json object
+    :rtype: dict
+    """
+    row = app.session.query(model_class)\
+        .where(model_class.id == id).first()
+
+    if not row:
+        return dict(
+            error=f'{class_name} id not exists',
+            id=id), 401
+
+    app.session.delete(row)
+    app.session.commit()
+
+    return dict(success=f'{id} deleted'), 200
