@@ -38,19 +38,19 @@ class BasicTypeSingle(Resource, ABC):
     """Method to handle post requests for table when specific type requested."""
     model_class = None
 
-    @auth.login_required
+    @abstractmethod
     def get(self, id):
         pass
 
-    @auth.login_required
+    @abstractmethod
     def put(self, id):
         pass
 
-    @auth.login_required
+    @abstractmethod
     def delete(self, id):
         pass
 
-    @auth.login_required
+    @abstractmethod
     def options(self, id):
         pass
 
