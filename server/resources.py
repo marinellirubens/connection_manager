@@ -11,6 +11,7 @@ from flask_restful import Resource
 
 from server.app import App
 from server.authentication import auth
+from server import utils
 
 
 app: Flask = App('main')
@@ -324,6 +325,94 @@ class UserGroups(BasicTypes):
                   self.model_class.user_id == data['user_id']).first()
 
         return {'success': 'Registered successfully', 'id': row.id}
+
+
+class FunctionPermissions(Resource):
+    """Method to handle function/permissions registration"""
+    model_class = models.FunctionPermissionsModel
+
+    @auth.login_required
+    def get(self):
+        """Method to handle get requests for type tables."""
+        rows = app.session.query(self.model_class).all()
+        app.logger.debug(
+            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
+
+        resp = {self.model_class.__tablename__: [row.to_json(app.session) for row in rows]}
+        return resp
+
+    @auth.login_required
+    def post(self):
+        """Method to handle post requests for type tables."""
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        for item in ['group_id', 'function_id']:
+            if item not in data:
+                return {'error': 'Invalid body provided'}, 401
+
+        if not check_if_info_exists(models.GroupModel, data['group_id'])[0]:
+            return {'error': 'Group not found'}, 401
+
+        if not check_if_info_exists(models.FunctionTypeModel, data['function_id'])[0]:
+            return {'error': 'Function not found'}, 401
+
+        row = app.session.query(self.model_class).\
+            where(self.model_class.group_id == data['group_id'] and
+                  self.model_class.function_id == data['function_id']).first()
+        if row:
+            return dict(
+               error=f'{self.__class__.__name__}: Combination already exists'
+            ), 401
+
+        app.session.bulk_save_objects([self.model_class(data["group_id"], data['function_id'])])
+        app.session.commit()
+
+        row = app.session.query(self.model_class).\
+            where(self.model_class.group_id == data['group_id'] and
+                  self.model_class.function_id == data['function_id']).first()
+
+        return {'success': 'Registered successfully', 'id': row.id}
+
+
+class Databases(Resource):
+    """Class to handle database requests"""
+    model_class = models.DatabaseModel
+
+    @auth.login_required
+    def get(self):
+        """Method to handle get requests"""
+        return basic_get(app.session, self.model_class, self.__class__.__name__)
+
+    @auth.login_required
+    def post(self):
+        """Method to handle post requests for type tables."""
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        class_fields = self.model_class.get_fields()
+        for item in class_fields:
+            if item not in data:
+                return {
+                    'error': 'Invalid body provided',
+                    'required_fields': class_fields
+                }, 401
+
+        requirements = self.model_class.get_requirements()
+        for requirement in requirements:
+            requirement_result = check_requirements(requirement[0], data[requirement[1]])
+            if not requirement_result[0]:
+                return {'error': requirement_result[1]}, 401
+
+        fields = []
+        for item in self.model_class.get_fields():
+            fields.append(data[item])
+
+        model = self.model_class(*fields)
+        app.session.bulk_save_objects([model])
+        app.session.commit()
+
+        print(model.to_json())
+
+        return {'success': 'Registered successfully'}
 
 
 def check_requirements(model_class, id) -> Tuple[bool, str]:
