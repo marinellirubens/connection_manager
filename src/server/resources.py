@@ -1344,7 +1344,7 @@ class Groups(BasicTypes):
         """Method to get the Group types.
         ---
         tags:
-          - GroupType
+          - Groups
 
         security:
           - basicAuth: []
@@ -1387,7 +1387,7 @@ class Groups(BasicTypes):
         """Method to include a new Group type.
         ---
         tags:
-          - GroupType
+          - Groups
 
         security:
           - basicAuth: []
@@ -1438,7 +1438,7 @@ class Groups(BasicTypes):
         """Method to handle options requests for type tables.
         ---
         tags:
-          - GroupType
+          - Groups
 
         definitions:
           OptType:
@@ -1467,7 +1467,7 @@ class Group(BasicTypeSingle):
         """Method to get a Group type by id.
         ---
         tags:
-          - GroupType
+          - Groups
 
         security:
           - basicAuth: []
@@ -1514,7 +1514,7 @@ class Group(BasicTypeSingle):
         """Method to update Group type description by id.
         ---
         tags:
-          - GroupType
+          - Groups
 
         security:
           - basicAuth: []
@@ -1579,7 +1579,7 @@ class Group(BasicTypeSingle):
         """Method to delete Group type by id.
         ---
         tags:
-          - GroupType
+          - Groups
 
         security:
           - basicAuth: []
@@ -1631,7 +1631,7 @@ class Group(BasicTypeSingle):
         """Method to handle options requests for type tables.
         ---
         tags:
-          - GroupType
+          - Groups
 
         parameters:
           - in: query
@@ -1664,7 +1664,7 @@ class Users(BasicTypes):
         """Method to get the Users list.
         ---
         tags:
-          - UserType
+          - Users
 
         security:
           - basicAuth: []
@@ -1710,7 +1710,7 @@ class Users(BasicTypes):
         """Method to handle the user insert
         ---
         tags:
-          - UserType
+          - Users
 
         security:
           - basicAuth: []
@@ -1806,6 +1806,58 @@ class Users(BasicTypes):
 class User(BasicTypeSingle):
     """Class to handle user single request"""
     model_class = models.UserModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get a User type by id.
+        ---
+        tags:
+          - Users
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the User
+
+        definitions:
+          UserType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the User type
+              name:
+                type: string
+                description: User name
+              creation_date:
+                type: string
+                description: User creation date
+              update_date:
+                type: string
+
+        responses:
+          '200':
+            description: returns a user
+            schema:
+              $ref: '#/definitions/UserType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
 
     @auth.login_required
     def put(self, id):
@@ -1813,6 +1865,50 @@ class User(BasicTypeSingle):
 
         :param param: type description
         :return: type id that was inserted
+        ---
+        tags:
+          - Users
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the User
+
+          - in: body
+            name: description
+            description: Description of the Group
+            schema:
+              $ref: '#/definitions/UserBody'
+
+        definitions:
+          UserBody:
+            type: object
+            properties:
+              name:
+                type: string
+                description: User name
+              password:
+                type: string
+                description: User password
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: Status of the update
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Error message
+            schema:
+              $ref: '#/definitions/Error'
         """
         verifier, row = utils.check_if_info_exists(self.model_class, id)
         if not verifier:
@@ -1836,6 +1932,61 @@ class User(BasicTypeSingle):
         app.logger.debug(f"[{request.authorization.username}] " + message)
 
         return dict(message=message, register=row.to_json())
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to delete User by id.
+        ---
+        tags:
+          - Users
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the User
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: User does not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    def options(self):
+        return dict(Allow=self.methods)
 
 
 class UserGroups(BasicTypes):
