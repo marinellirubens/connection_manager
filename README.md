@@ -8,6 +8,8 @@ This project is a side project for my portfolio, but the idea comes from a real 
 
 This api have a Swagger implementation on endpoint /apidocs and the ideia is to run on a container.
 
+![swagger_example.png](docs/swagger_example.png)
+
 ### Pending activities
 
 There are many thing that still need fixing but I'm creating the README.md to track the ideas that rise on the process.
