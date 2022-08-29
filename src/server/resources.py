@@ -518,13 +518,13 @@ class ConnectionType(BasicTypeSingle):
             properties:
               id:
                 type: integer
-                description: Id of the database type
+                description: Id of the Connection type
               description:
                 type: string
-                description: Database type description
+                description: Connection type description
               creation_date:
                 type: string
-                description: Database type creation date
+                description: Connection type creation date
         responses:
           '200':
             description: A list of the Connection types
@@ -818,11 +818,321 @@ class ServerType(BasicTypeSingle):
     connection type requested.
     """
     model_class = models.ServerTypeModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get a Server type by id.
+        ---
+        tags:
+          - ServerType
+
+        security:
+          - basicAuth: []
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Server
+
+        definitions:
+          ServerType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the Server type
+              description:
+                type: string
+                description: Server type description
+              creation_date:
+                type: string
+                description: Server type creation date
+        responses:
+          '200':
+            description: A list of the Server types
+            schema:
+              $ref: '#/definitions/ServerType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def put(self, id):
+        """Method to update Server type description by id.
+        ---
+        tags:
+          - ServerType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Server
+
+          - in: body
+            name: description
+            description: Description of the Server
+            schema:
+              $ref: '#/definitions/ServerTypeBody'
+
+        definitions:
+          ServerTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Server type description
+                example: SSH
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Server type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the Server types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the Server types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_put(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to delete Server type by id.
+        ---
+        tags:
+          - ServerType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Server
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: DatabaseType if not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def options(self, id):
+        """Method to handle options requests for type tables.
+        ---
+        tags:
+          - ServerType
+
+        parameters:
+          - in: query
+            name: id
+            description: Id of the Server
+        definitions:
+          OptType:
+            type: object
+            properties:
+              Allow:
+                type: array
+                description: Message of the status
+                example: ['GET', 'POST', 'OPTIONS']
+        responses:
+          '200':
+            description: A list of the server types
+            schema:
+              $ref: '#/definitions/OptType'
+        """
+        return dict(Allow=self.methods)
 
 
 class FunctionTypes(BasicTypes):
     """Method to handle post requests for function_type table when all lines requested."""
     model_class = models.FunctionTypeModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        """Method to get the Function types.
+        ---
+        tags:
+          - FunctionType
+
+        security:
+          - basicAuth: []
+
+        definitions:
+          FunctionType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the Function type
+              description:
+                type: string
+                description: Function type description
+              creation_date:
+                type: string
+                description: Function type creation date
+          FunctionTypes:
+            type: object
+            properties:
+              function_type:
+                type: array
+                items:
+                  $ref: '#/definitions/FunctionType'
+        responses:
+          '200':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/FunctionTypes'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
+
+    @auth.login_required
+    def post(self):
+        """Method to include a new Function type.
+        ---
+        tags:
+          - FunctionType
+
+        security:
+          - basicAuth: []
+        parameters:
+          - in: body
+            name: description
+            description: Description of the database
+            schema:
+              $ref: '#/definitions/FunctionTypeBody'
+
+        definitions:
+          FunctionTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Function type description
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Function type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        return utils.basic_post(app.session, request, self.model_class)
+
+    def options(self):
+        """Method to handle options requests for type tables.
+        ---
+        tags:
+          - FunctionType
+
+        definitions:
+          OptType:
+            type: object
+            properties:
+              Allow:
+                type: array
+                description: Message of the status
+                example: ['GET', 'POST', 'OPTIONS']
+        responses:
+          '200':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/OptType'
+        """
+        return dict(Allow=self.methods)
 
 
 class FunctionType(BasicTypeSingle):
@@ -830,27 +1140,633 @@ class FunctionType(BasicTypeSingle):
     function type requested.
     """
     model_class = models.FunctionTypeModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get a Function type by id.
+        ---
+        tags:
+          - FunctionType
+
+        security:
+          - basicAuth: []
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Function
+
+        definitions:
+          FunctionType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the function type
+              description:
+                type: string
+                description: Function type description
+              creation_date:
+                type: string
+                description: Function type creation date
+        responses:
+          '200':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/FunctionType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def put(self, id):
+        """Method to update Function type description by id.
+        ---
+        tags:
+          - FunctionType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Function
+
+          - in: body
+            name: description
+            description: Description of the Function
+            schema:
+              $ref: '#/definitions/FunctionTypeBody'
+
+        definitions:
+          FunctionTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Function type description
+                example: SSH
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Function type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the Function types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_put(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to delete Function type by id.
+        ---
+        tags:
+          - FunctionType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Function
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: FunctionType if not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def options(self, id):
+        """Method to handle options requests for type tables.
+        ---
+        tags:
+          - FunctionType
+
+        parameters:
+          - in: query
+            name: id
+            description: Id of the Function
+        definitions:
+          OptType:
+            type: object
+            properties:
+              Allow:
+                type: array
+                description: Message of the status
+                example: ['GET', 'POST', 'OPTIONS']
+        responses:
+          '200':
+            description: A list of the function types
+            schema:
+              $ref: '#/definitions/OptType'
+        """
+        return dict(Allow=self.methods)
 
 
 class Groups(BasicTypes):
     """Method to handle post requests for groups table when all lines requested."""
     model_class = models.GroupModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        """Method to get the Group types.
+        ---
+        tags:
+          - GroupType
+
+        security:
+          - basicAuth: []
+
+        definitions:
+          GroupType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the Group type
+              description:
+                type: string
+                description: Group type description
+              creation_date:
+                type: string
+                description: Group type creation date
+          GroupTypes:
+            type: object
+            properties:
+              Group_type:
+                type: array
+                items:
+                  $ref: '#/definitions/GroupType'
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/GroupTypes'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
+
+    @auth.login_required
+    def post(self):
+        """Method to include a new Group type.
+        ---
+        tags:
+          - GroupType
+
+        security:
+          - basicAuth: []
+        parameters:
+          - in: body
+            name: description
+            description: Description of the database
+            schema:
+              $ref: '#/definitions/GroupTypeBody'
+
+        definitions:
+          GroupTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Group type description
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Group type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        return utils.basic_post(app.session, request, self.model_class)
+
+    def options(self):
+        """Method to handle options requests for type tables.
+        ---
+        tags:
+          - GroupType
+
+        definitions:
+          OptType:
+            type: object
+            properties:
+              Allow:
+                type: array
+                description: Message of the status
+                example: ['GET', 'POST', 'OPTIONS']
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/OptType'
+        """
+        return dict(Allow=self.methods)
 
 
 class Group(BasicTypeSingle):
     """Method to handle post requests for groups table when specific group requested."""
     model_class = models.GroupModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get a Group type by id.
+        ---
+        tags:
+          - GroupType
+
+        security:
+          - basicAuth: []
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Group
+
+        definitions:
+          GroupType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the Group type
+              description:
+                type: string
+                description: Group type description
+              creation_date:
+                type: string
+                description: Group type creation date
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/GroupType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def put(self, id):
+        """Method to update Group type description by id.
+        ---
+        tags:
+          - GroupType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Group
+
+          - in: body
+            name: description
+            description: Description of the Group
+            schema:
+              $ref: '#/definitions/GroupTypeBody'
+
+        definitions:
+          GroupTypeBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Group type description
+                example: SSH
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Group type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_put(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to delete Group type by id.
+        ---
+        tags:
+          - GroupType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Group
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: GroupType if not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def options(self, id):
+        """Method to handle options requests for type tables.
+        ---
+        tags:
+          - GroupType
+
+        parameters:
+          - in: query
+            name: id
+            description: Id of the Group
+        definitions:
+          OptType:
+            type: object
+            properties:
+              Allow:
+                type: array
+                description: Message of the status
+                example: ['GET', 'POST', 'OPTIONS']
+        responses:
+          '200':
+            description: A list of the Group types
+            schema:
+              $ref: '#/definitions/OptType'
+        """
+        return dict(Allow=self.methods)
 
 
 class Users(BasicTypes):
     """Class to handle user requests"""
     model_class = models.UserModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        """Method to get the Users list.
+        ---
+        tags:
+          - UserType
+
+        security:
+          - basicAuth: []
+
+        definitions:
+          UserType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the User type
+              name:
+                type: string
+                description: User name
+              creation_date:
+                type: string
+                description: User creation date
+              update_date:
+                type: string
+                description: User update date
+          UserTypes:
+            type: object
+            properties:
+              user_type:
+                type: array
+                items:
+                  $ref: '#/definitions/UserType'
+        responses:
+          '200':
+            description: A list of the User types
+            schema:
+              $ref: '#/definitions/UserTypes'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
-        """Method to handle the user insert"""
-        name = request.headers.get('name', None)
-        password = request.headers.get('password', None)
+        """Method to handle the user insert
+        ---
+        tags:
+          - UserType
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: body
+            name: user
+            description: User information
+            schema:
+              $ref: '#/definitions/UserBody'
+
+        definitions:
+          UserBody:
+            type: object
+            properties:
+              name:
+                type: string
+                description: User name
+              password:
+                type: string
+                description: User password
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: User id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of Users
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Error on the request
+            schema:
+              $ref: '#/definitions/Error'
+          '400':
+            description: error on the request parameters
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        name = data.get('name', None)
+        password = data.get('password', None)
 
         if not any([name, password]):
             return {
@@ -882,6 +1798,9 @@ class Users(BasicTypes):
             where(models.UserModel.name == name).first()
 
         return {'success': f'User {name} created.', 'id': row.id}
+
+    def options(self):
+        return dict(Allow=self.methods)
 
 
 class User(BasicTypeSingle):
