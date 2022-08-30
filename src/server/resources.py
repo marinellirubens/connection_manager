@@ -1992,16 +1992,12 @@ class User(BasicTypeSingle):
 class UserGroups(BasicTypes):
     """Class to handle user requests"""
     model_class = models.UserGroupModel
+    methods = ['GET', 'POST', 'OPTIONS']
 
     @auth.login_required
     def get(self):
         """Method to handle get requests for type tables."""
-        rows = app.session.query(self.model_class).all()
-        app.logger.debug(
-            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
-
-        resp = {self.model_class.__tablename__: [row.to_json(app.session) for row in rows]}
-        return resp
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
@@ -2035,20 +2031,19 @@ class UserGroups(BasicTypes):
 
         return {'success': 'Registered successfully', 'id': row.id}
 
+    def options(self):
+        return dict(Allow=self.methods)
+
 
 class FunctionPermissions(Resource):
     """Method to handle function/permissions registration"""
     model_class = models.FunctionPermissionsModel
+    methods = ['GET', 'POST', 'OPTIONS']
 
     @auth.login_required
     def get(self):
         """Method to handle get requests for type tables."""
-        rows = app.session.query(self.model_class).all()
-        app.logger.debug(
-            f"[{request.authorization.username}] Returning all {self.__class__.__name__} rows")
-
-        resp = {self.model_class.__tablename__: [row.to_json(app.session) for row in rows]}
-        return resp
+        return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
@@ -2082,10 +2077,14 @@ class FunctionPermissions(Resource):
 
         return {'success': 'Registered successfully', 'id': row.id}
 
+    def options(self):
+        return dict(Allow=self.methods)
+
 
 class Databases(Resource):
     """Class to handle database requests"""
     model_class = models.DatabaseModel
+    methods = ['GET', 'POST', 'OPTIONS']
 
     @auth.login_required
     def get(self):
@@ -2122,3 +2121,6 @@ class Databases(Resource):
         print(model.to_json())
 
         return {'success': 'Registered successfully'}
+
+    def options(self):
+        return dict(Allow=self.methods)
