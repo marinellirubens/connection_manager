@@ -1996,12 +1996,144 @@ class UserGroups(BasicTypes):
 
     @auth.login_required
     def get(self):
-        """Method to handle get requests for type tables."""
+        """Method to handle get requests for type tables.
+        ---
+        tags:
+          - UserGroups
+
+        security:
+          - basicAuth: []
+
+        definitions:
+          UserType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the User type
+                example: 1
+              name:
+                type: string
+                description: User name
+                example: admin
+              creation_date:
+                type: string
+                description: User creation date
+                example: 2022-08-28
+              update_date:
+                type: string
+                description: User update date
+                example: 2022-08-28
+          GroupType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the Group type
+                example: 1
+              description:
+                type: string
+                description: Group type description
+                example: admin
+              creation_date:
+                type: string
+                description: Group type creation date
+                example: 2022-08-28
+          UserGroup:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the database type
+                example: 1
+              group:
+                type: object
+                description: Group object mapped to user
+                schema:
+                  $ref: '#/definitions/GroupType'
+              user:
+                type: object
+                description: User maped to group
+                schema:
+                  $ref: '#/definitions/UserType'
+          UserGroups:
+            type: object
+            properties:
+              user_grp:
+                type: array
+                items:
+                  $ref: '#/definitions/UserGroup'
+        responses:
+          '200':
+            description: A list of the user by group
+            schema:
+              $ref: '#/definitions/UserGroups'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
-        """Method to handle post requests for type tables."""
+        """Method to handle post requests for type tables.
+        ---
+        tags:
+          - UserGroups
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: body
+            name: user_group
+            description: User group link
+            schema:
+              $ref: '#/definitions/UserGroupBody'
+
+        definitions:
+          UserGroupBody:
+            type: object
+            properties:
+              group_id:
+                type: integer
+                description: Group id
+              user_id:
+                type: integer
+                description: User id
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: User id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: A list of Users
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Error on the request
+            schema:
+              $ref: '#/definitions/Error'
+          '400':
+            description: error on the request parameters
+            schema:
+              $ref: '#/definitions/Error'
+        """
         data = json.loads(request.get_data().decode('utf-8'))
 
         for item in ['group_id', 'user_id']:
@@ -2042,12 +2174,36 @@ class FunctionPermissions(Resource):
 
     @auth.login_required
     def get(self):
-        """Method to handle get requests for type tables."""
+        """(Incomplete) Method to handle get requests for type tables.
+          ---
+          tags:
+            - FunctionPermissions
+
+          security:
+            - basicAuth: []
+
+          responses:
+            '200':
+              type: object
+              description: A list of Users
+        """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
-        """Method to handle post requests for type tables."""
+        """(Incomplete) Method to handle post requests for type tables.
+          ---
+          tags:
+            - FunctionPermissions
+
+          security:
+            - basicAuth: []
+
+          responses:
+            '200':
+              type: object
+              description: A list of Users
+        """
         data = json.loads(request.get_data().decode('utf-8'))
 
         for item in ['group_id', 'function_id']:
@@ -2088,12 +2244,36 @@ class Databases(Resource):
 
     @auth.login_required
     def get(self):
-        """Method to handle get requests"""
+        """(Incomplete) Method to handle get requests
+          ---
+          tags:
+            - Databases
+
+          security:
+            - basicAuth: []
+
+          responses:
+            '200':
+              type: object
+              description: A list of Users
+        """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
-        """Method to handle post requests for type tables."""
+        """(Incomplete) Method to handle post requests for type tables.
+          ---
+          tags:
+            - Databases
+
+          security:
+            - basicAuth: []
+
+          responses:
+            '200':
+              type: object
+              description: A list of Users
+        """
         data = json.loads(request.get_data().decode('utf-8'))
 
         class_fields = self.model_class.get_fields()
