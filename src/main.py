@@ -20,7 +20,7 @@ def main(*args, **kwargs):
 
     if kwargs.get('debug', False):
         set_logger(app, directory_logs)
-        app.run(host='127.0.0.1', port='7009', debug=False)
+        app.run(host='127.0.0.1', port='7009', debug=True)
     return app
 
 
