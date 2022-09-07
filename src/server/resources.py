@@ -1365,7 +1365,7 @@ class Groups(BasicTypes):
           GroupTypes:
             type: object
             properties:
-              Group_type:
+              group_type:
                 type: array
                 items:
                   $ref: '#/definitions/GroupType'
@@ -1391,6 +1391,7 @@ class Groups(BasicTypes):
 
         security:
           - basicAuth: []
+
         parameters:
           - in: body
             name: description
@@ -2182,27 +2183,116 @@ class FunctionPermissions(Resource):
           security:
             - basicAuth: []
 
+          definitions:
+            FunctionTypeBody:
+              type: object
+              properties:
+                description:
+                  type: string
+                  description: Function type description
+            GroupType:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Id of the Group type
+                description:
+                  type: string
+                  description: Group type description
+                creation_date:
+                  type: string
+                  description: Group type creation date
+            FunctionPermission:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: Function / Group permission
+                group:
+                  type: object
+                  description: Group object
+                  schema:
+                    $ref: '#/definitions/GroupType'
+                function:
+                  type: object
+                  description: Function information
+                  schema:
+                    $ref: '#/definitions/FunctionTypeBody'
+            FunctionPermissions:
+              type: object
+              properties:
+                function_permission:
+                  type: array
+                  items:
+                    $ref: '#/definitions/FunctionPermission'
+
           responses:
             '200':
-              type: object
-              description: A list of Users
+              description: A list of Function permissions
+              schema:
+                $ref: '#/definitions/FunctionPermissions'
+            '401':
+              description: Error if user is not authorized
+              schema:
+                type: string
+                example: Unauthorized Access
         """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
         """(Incomplete) Method to handle post requests for type tables.
-          ---
-          tags:
-            - FunctionPermissions
+        ---
+        tags:
+          - FunctionPermissions
 
-          security:
-            - basicAuth: []
+        security:
+          - basicAuth: []
 
-          responses:
-            '200':
-              type: object
-              description: A list of Users
+        parameters:
+          - in: body
+            name: function_permission
+            description: link of the function and group
+            schema:
+              $ref: '#/definitions/FunctionPermissionBody'
+
+        definitions:
+          FunctionPermissionBody:
+            type: object
+            properties:
+              group_id:
+                type: integer
+                description: The id of the Group
+              function_id:
+                type: integer
+                description: The id of the function
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Group type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+
+        responses:
+          '200':
+            description: Object with the status of the request, and id of the new functionpermission
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Object with the status of the request
+            schema:
+              $ref: '#/definitions/Error'
         """
         data = json.loads(request.get_data().decode('utf-8'))
 
@@ -2245,34 +2335,117 @@ class Databases(Resource):
     @auth.login_required
     def get(self):
         """(Incomplete) Method to handle get requests
-          ---
-          tags:
-            - Databases
+        ---
+        tags:
+          - Databases
 
-          security:
-            - basicAuth: []
+        security:
+          - basicAuth: []
 
-          responses:
-            '200':
-              type: object
-              description: A list of Users
+        definitions:
+          Database:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Database description
+              host:
+                type: string
+                description: Hostname or ip address for the database
+              port:
+                type: string
+                description: port used by the database
+              sid:
+                type: string
+                description: sid of the database
+              database_type_id:
+                type: integer
+                description: database type id
+          Databases:
+            type: object
+            properties:
+              databases:
+                type: array
+                items:
+                  $ref: '#/definitions/Database'
+        responses:
+          '200':
+            type: object
+            description: A list of Databases
+            schema:
+              $ref: '#/definitions/Databases'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
         """
         return utils.basic_get(app.session, self.model_class, self.__class__.__name__)
 
     @auth.login_required
     def post(self):
         """(Incomplete) Method to handle post requests for type tables.
-          ---
-          tags:
-            - Databases
+        ---
+        tags:
+          - Databases
 
-          security:
-            - basicAuth: []
+        security:
+          - basicAuth: []
 
-          responses:
-            '200':
-              type: object
-              description: A list of Users
+        parameters:
+          - in: body
+            name: database
+            description: Description of the database
+            schema:
+              $ref: '#/definitions/DatabaseBody'
+
+        definitions:
+          DatabaseBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: Database description
+              host:
+                type: string
+                description: Hostname or ip address for the database
+              port:
+                type: string
+                description: port used by the database
+              sid:
+                type: string
+                description: sid of the database
+              database_type_id:
+                type: integer
+                description: database type id
+
+          BasicPost:
+            type: object
+            properties:
+              status:
+                type: string
+                description: Message of the status
+                example: Registered successfully
+              id:
+                type: integer
+                description: Group type id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+
+        responses:
+          '200':
+            description: Object with the status of the request, and id of the new database
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Object with the status of the request
+            schema:
+              $ref: '#/definitions/Error'
         """
         data = json.loads(request.get_data().decode('utf-8'))
 
