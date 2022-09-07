@@ -73,8 +73,13 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.User, '/users/<id>', methods=individual_methods)
 
     api.add_resource(resources.UserGroups, '/user_groups/', methods=basic_methods)
+    # TODO: Include individual enpoint
+
     api.add_resource(resources.FunctionPermissions, '/function_permissions/', methods=basic_methods)
+    # TODO: Include Individual endpoint
+
     api.add_resource(resources.Databases, '/databases/', methods=basic_methods)
+    # TODO: Include individual endpoint
 
     # app.config['SWAGGER'] = {
     #     'ignore_verbs': []
@@ -135,11 +140,14 @@ def password_complexity_check(user, password) -> Tuple[bool, str]:
     if '123456' in password:
         return False, 'Password should not contain sequetial characteres'
 
-    if re.match(r'(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])(?=.{8,})', password):
+    # TODO: Preciso revisar essa expressao regular
+    if re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$', password):
         return False, 'Invalid password'
 
-    if password in ['admin', 'password', 'senha']:
-        return False, 'Invalid password'
+    if password in {'admin', 'password', 'senha'}:
+        return (False,
+                'Invalid password, should be at least 8 characters, ' +
+                'at least one upper case, at least one lower case')
 
     return True, 'Valid'
 
