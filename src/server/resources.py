@@ -3036,3 +3036,156 @@ class Databases(Resource):
 
     def options(self):
         return dict(Allow=self.methods)
+
+
+class Servers(Resource):
+    # TODO: Implement this class 
+    model_class = models.ServerModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        pass
+
+    @auth.login_required
+    def post(self):
+        pass
+
+    def options(self):
+        pass
+
+
+class Server(Resource):
+    # TODO: Implement this class 
+    model_class = models.ServerModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        pass
+
+    @auth.login_required
+    def put(self, id):
+        pass
+
+    @auth.login_required
+    def delete(self, id):
+        pass
+
+    def options(self, id):
+        pass
+
+
+
+class ServerPermissions(Resource):
+    # TODO: Implement this class 
+    model_class = models.ServerPermissionsModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        pass
+
+    @auth.login_required
+    def post(self):
+        pass
+
+    def options(self):
+        pass
+
+
+class ServerPermission(Resource):
+    # TODO: Implement this class 
+    model_class = models.ServerPermissionsModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        pass
+
+    @auth.login_required
+    def put(self, id):
+        pass
+
+    @auth.login_required
+    def delete(self, id):
+        pass
+
+    def options(self, id):
+        pass
+
+
+class Logins(Resource):
+    # TODO: Implement this class 
+    model_class = models.LoginModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        pass
+
+    @auth.login_required
+    def post(self):
+        pass
+
+    def options(self):
+        pass
+
+
+class Login(Resource):
+    # TODO: Implement this class 
+    model_class = models.LoginModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        pass
+
+    @auth.login_required
+    def put(self, id):
+        pass
+
+    @auth.login_required
+    def delete(self, id):
+        pass
+
+    def options(self, id):
+        pass
+
+
+class ConnectionLogins(Resource):
+    # TODO: Implement this class 
+    model_class = models.ConnectionLoginModel
+    methods = ['GET', 'POST', 'OPTIONS']
+
+    @auth.login_required
+    def get(self):
+        pass
+
+    @auth.login_required
+    def post(self):
+        pass
+
+    def options(self):
+        pass
+
+
+class ConnectionLogin(Resource):
+    # TODO: Implement this class 
+    model_class = models.ConnectionLoginModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        pass
+
+    @auth.login_required
+    def put(self, id):
+        pass
+
+    @auth.login_required
+    def delete(self, id):
+        pass
+
+    def options(self, id):
+        pass
