@@ -2893,7 +2893,7 @@ class Databases(Resource):
 
     @auth.login_required
     def get(self):
-        """(Incomplete) Method to handle get requests
+        """Method to handle get requests
         ---
         tags:
           - Databases
@@ -2943,7 +2943,7 @@ class Databases(Resource):
 
     @auth.login_required
     def post(self):
-        """(Incomplete) Method to handle post requests for type tables.
+        """Method to handle post requests for type tables.
         ---
         tags:
           - Databases
