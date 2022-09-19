@@ -2346,6 +2346,184 @@ class UserGroups(BasicTypes):
         return dict(Allow=self.methods)
 
 
+class FunctionPermission(Resource):
+    """Class to handle function/permissions registration."""
+    model_class = models.FunctionPermissionsModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get single conbination of Function / Permission.
+        ---
+        tags:
+          - FunctionPermissions
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the User / Group combination
+
+        definitions:
+          FunctionPermissionType:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the User type
+              group_id:
+                type: integer
+                description: Group id
+              function_id:
+                type: integer
+                description: Function id
+
+        responses:
+          '200':
+            description: returns a user / group combination
+            schema:
+              $ref: '#/definitions/FunctionPermissionType'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def put(self, id):
+        """Method to change single combination of user / group.
+        ---
+        tags:
+          - FunctionPermissions
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: body
+            name: user_group
+            description: Function/Permission combination.
+            schema:
+              $ref: '#/definitions/FunctionPermissionBody'
+
+        definitions:
+          FunctionPermissionBody:
+            type: object
+            properties:
+              group_id:
+                type: integer
+                description: Group id
+              function_id:
+                type: integer
+                description: Function id
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: Status of the update
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Error message
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        verifier, row = utils.check_if_info_exists(self.model_class, id)
+        if not verifier:
+            return dict(
+                error=f'{self.__class__.__name__} id not exists',
+                id=id), 401
+
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        if ['group_id', 'function_id'] not in data:
+            return {'error': 'Invalid description provided'}, 401
+
+        row.user_id = data['user_id']
+        row.function_id = data['function_id']
+
+        app.session.bulk_save_objects([row])
+        app.session.commit()
+
+        message = f"{self.__class__.__name__}:" + \
+                  f" {row.id} saved successfully"
+        app.logger.debug(f"[{request.authorization.username}] " + message)
+
+        return dict(message=message, register=row.to_json())
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to handle the delete of a function/permission combination
+        ---
+        tags:
+          - FunctionPermissions
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the function/permission combination.
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: User does not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    def options(self, id):
+        """Method to get the methods allowd for this enpoint."""
+        return dict(Allow=self.methods)
+
+
 class FunctionPermissions(Resource):
     """Method to handle function/permissions registration"""
     model_class = models.FunctionPermissionsModel
