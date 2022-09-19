@@ -1990,6 +1990,12 @@ class User(BasicTypeSingle):
         return dict(Allow=self.methods)
 
 
+class UserGroup(BasicTypeSingle):
+    """Class to handle user group individual requests."""
+    model_class = models.UserGroupModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+
 class UserGroups(BasicTypes):
     """Class to handle user requests"""
     model_class = models.UserGroupModel
