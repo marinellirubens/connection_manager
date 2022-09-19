@@ -2683,6 +2683,209 @@ class FunctionPermissions(Resource):
         return dict(Allow=self.methods)
 
 
+class Database(Resource):
+    """Class to handle database requests."""
+    model_class = models.DatabaseModel
+    methods = ['GET', 'PUT', 'OPTIONS', 'DELETE']
+
+    @auth.login_required
+    def get(self, id):
+        """Method to get single Database.
+        ---
+        tags:
+          - Databases
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Database
+
+        definitions:
+          Database:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Id of the User type
+              description:
+                type: string
+                description: database description
+              host:
+                type: string
+                description: hostnane or ip
+              port:
+                type: integer
+                description: database port
+              sid:
+                type: string
+                description: datanbase sid name
+              database_type_id:
+                type: integer
+                description: id of the database id.
+
+        responses:
+          '200':
+            description: returns a user / group combination
+            schema:
+              $ref: '#/definitions/Database'
+          '401':
+            description: Error if user is not authorized
+            schema:
+              type: string
+              example: Unauthorized Access
+        """
+        resp = utils.basic_single_get(
+            id,
+            app,
+            self.model_class,
+            request,
+            self.__class__.__name__
+        )
+        return resp
+
+    @auth.login_required
+    def put(self, id):
+        """Method to change single Database.
+        ---
+        tags:
+          - Databases
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: body
+            name: user_group
+            description: Function/Permission combination.
+            schema:
+              $ref: '#/definitions/DatabaseBody'
+
+        definitions:
+          DatabaseBody:
+            type: object
+            properties:
+              description:
+                type: string
+                description: database description
+              host:
+                type: string
+                description: hostnane or ip
+              port:
+                type: integer
+                description: database port
+              sid:
+                type: string
+                description: datanbase sid name
+              database_type_id:
+                type: integer
+                description: id of the database id.
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: Invalid description provided
+        responses:
+          '200':
+            description: Status of the update
+            schema:
+              $ref: '#/definitions/BasicPost'
+          '401':
+            description: Error message
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        verifier, row = utils.check_if_info_exists(self.model_class, id)
+        if not verifier:
+            return dict(
+                error=f'{self.__class__.__name__} id not exists',
+                id=id), 401
+
+        data = json.loads(request.get_data().decode('utf-8'))
+
+        for item in row.get_fields():
+            if item not in data:
+                return {
+                    'error': 'Invalid body provided',
+                    'required_fields': row.get_fields()
+                }, 401
+
+        row.description = data['description']
+        row.host = data['host']
+        row.port = data['port']
+        row.sid = data['sid']
+        row.database_type_id = data['database_type_id']
+
+        app.session.bulk_save_objects([row])
+        app.session.commit()
+
+        message = f"{self.__class__.__name__}:" + \
+                  f" {row.id} saved successfully"
+        app.logger.debug(f"[{request.authorization.username}] " + message)
+
+        return dict(message=message, register=row.to_json())
+
+    @auth.login_required
+    def delete(self, id):
+        """Method to handle the delete of a Databases
+        ---
+        tags:
+          - Databases
+
+        security:
+          - basicAuth: []
+
+        parameters:
+          - in: path
+            name: id
+            description: Id of the Databases.
+
+        definitions:
+          BasicDelete:
+            type: object
+            properties:
+              success:
+                type: string
+                description: Message of the status
+                example: 1 deleted
+          Error:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Error message
+                example: User does not exists
+              id:
+                type: int
+                description: Id of the request
+                example: 1
+        responses:
+          '200':
+            description: A objects with a success message
+            schema:
+              $ref: '#/definitions/BasicDelete'
+          '401':
+            description: A object with the error message and the id requested
+            schema:
+              $ref: '#/definitions/Error'
+        """
+        resp = utils.basic_single_delete(
+            id,
+            app,
+            self.model_class,
+            self.__class__.__name__
+        )
+        return resp
+
+    def options(self, id):
+        """Method to get the methods allowd for this enpoint."""
+        return dict(Allow=self.methods)
+
+
 class Databases(Resource):
     """Class to handle database requests"""
     model_class = models.DatabaseModel
