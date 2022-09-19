@@ -73,13 +73,13 @@ def create_app(app_name: str, database_directory: str = 'sqlite',
     api.add_resource(resources.User, '/users/<id>', methods=individual_methods)
 
     api.add_resource(resources.UserGroups, '/user_groups/', methods=basic_methods)
-    # TODO: Include individual enpoint
+    api.add_resource(resources.UserGroup, '/user_groups/<id>', methods=individual_methods)
 
     api.add_resource(resources.FunctionPermissions, '/function_permissions/', methods=basic_methods)
-    # TODO: Include Individual endpoint
+    api.add_resource(resources.FunctionPermission, '/function_permissions/<id>', methods=individual_methods)
 
     api.add_resource(resources.Databases, '/databases/', methods=basic_methods)
-    # TODO: Include individual endpoint
+    api.add_resource(resources.Database, '/databases/<id>', methods=individual_methods)
 
     # app.config['SWAGGER'] = {
     #     'ignore_verbs': []
